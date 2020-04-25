@@ -1,0 +1,262 @@
+/* body */
+
+body {
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+background: #fafafa;
+font-family: Arial, Helvetica, sans-serif;
+color: #324b73;
+}
+
+/* Login */
+
+.crawl-login {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    display:flex;
+    width: 90%;
+    height: 90%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.crawl-login-username-password {
+    display:flex;
+    width: 90%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.crawl-login-username-password-upper{
+    display:flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.crawl-login span{
+    color: #324b73;
+}
+
+.crawl-login-username-password-below{
+    display:flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 5px auto 10px auto;
+}
+
+.crawl-login input{
+    width: 100%;
+    height: 45px;
+    border-radius: 4px;
+    border: 1px solid #324b73;
+    padding-left:  10px ;
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    color: #324b73;
+}
+
+.crawl-login ::placeholder{
+    color: #324b73;
+}
+
+.crawl-login-button-submit{
+    display:flex;
+    width: 30%;
+    height: 50px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    background: #324b73;
+}
+
+.crawl-login-button-submit span{
+    color:#fafafa;
+}
+
+.crawl-login-button-submit:active{
+    transform: scale(1.2);
+}
+
+.crawl-login-success-contain{
+    display:flex;
+    width: 90%;
+    height: 90%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#crawl_login_error_text{
+   display: none;
+    font-size: 25px;
+    font-weight: 600;
+    color:red;
+    position: absolute;
+    bottom: 10px;
+    animation: textshow 5s linear infinite alternate;
+}
+
+/* OTP */
+#crawl-login-success{
+    display: none;
+}
+
+#crawl_otp_error_text{
+    display: none;
+     font-size: 25px;
+     font-weight: 600;
+     color:red;
+     position: absolute;
+     bottom: 10px;
+     animation: textshow 5s linear infinite alternate;
+ }
+/* crawling */
+.div-craw{
+display: none;
+}
+
+.crawl-login-crawl {
+    display:flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#second_crawl{
+    width: 45px;
+    height: 45px;
+    border-radius: 4px;
+    border: 1px solid #324b73;
+    padding-left:  10px ;
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    color: #324b73;
+}
+
+#div-login-file-input{
+    margin-bottom: 5px;
+    top:1px;
+    left:20px;
+    height: 50px;
+    min-width: 100px;
+    border: 1px solid #324b73;
+    word-break: break-all;
+    border-radius: 4px;
+    display: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#div-login-file-input img{
+    height: 35px;
+    width: 35px;
+    background-position: 100% 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+#div-login-file-input span{
+    margin-left: 5px;
+}
+
+#span_file_input_success{
+    color: green;
+}
+
+#span_file_input_error{
+    color: red;
+}
+
+
+.crawl-login-number-delay {
+    display:flex;
+    flex-direction: row;
+    width: 250px;
+    height: 45px;
+    margin-bottom: 25px;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.crawl-login-button-submit{
+    display:flex;
+    width: 30%;
+    height: 50px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    background: #324b73;
+}
+
+.crawl-login-button-submit span{
+    color:#fafafa;
+}
+
+.crawl-login-button-submit:active{
+    transform: scale(1.2);
+}
+
+.div-progress-bar{
+    width: 100%;
+    height: 24px;
+    margin-top: 10px;
+    border: 1px solid #3498db;
+    background: transparent;
+    display: none;
+}
+
+#div_grey{
+    height: 100%;
+    width: 0%;
+    background: #3498db;
+}
+
+#success_text{
+    display: none;
+    color: green;
+}
+
+#error_crawl{
+    display: none;
+    color: red;
+}
+
+/* animation */
+@keyframes textshow {
+    0%   {color:red}
+    25% {color:rgb(236, 212, 212)}
+    50%  {color:red}
+    75% {color:rgb(236, 212, 212)}
+    100% {color:red}
+  }
+
+  @keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+  }

@@ -1,11 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Trả cứu thông tin</title>
-    <link rel="stylesheet" href="assets/style.css">
+    <title>Tra cứu thông tin</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
+
 <body>
-    <div></div>
+    <!-- Login -->
+    <div class="crawl-login" id="crawl_login" >
+        <div class="crawl-login-username-password">
+            <div class="crawl-login-username-password-upper">
+                <span>Tên đăng nhập</span>
+            </div>
+            <div class="crawl-login-username-password-below">
+                <input type="text" id="username" placeholder="Nhập vào tên đăng nhập">
+            </div>
+        </div>
+
+        <div class="crawl-login-username-password">
+            <div class="crawl-login-username-password-upper">
+                <span>Mật khẩu</span>
+            </div>
+            <div class="crawl-login-username-password-below">
+                <input type="password" id="password" placeholder="Nhập vào mật khẩu">
+            </div>
+        </div>
+
+        <div class="crawl-login-button-submit" onclick="login()">
+            <span>Đăng nhập</span>
+        </div>
+        <h4 id="crawl_login_error_text">123</h4>
+    </div>
+
+    <!-- login success -->
+
+    <div class="crawl-login" id="crawl_login_success">
+        <div class="crawl-login-success-contain">
+            <h2 id="crawl_otp_error_text">Đăng nhập thành công ...</h2>
+        </div>
+    </div>
+
+    <!-- OTP -->
+    <div class="crawl-login" id="crawl_otp" >
+        <div class="crawl-login-username-password">
+            <div class="crawl-login-username-password-upper">
+                <span>Xác nhận mật khẩu OTP</span>
+            </div>
+            <div class="crawl-login-username-password-below">
+                <input type="text" id="username" placeholder="Nhập vào mật khẩu OTP">
+            </div>
+        </div>
+
+        <div class="crawl-login-button-submit" onclick="otp()">
+            <span>Xác nhận</span>
+        </div>
+        <h4 id="crawl_otp_error_text">123</h4>
+    </div>
+
+    <!-- crawling -->
+    <div class="crawl-login" id="div_craw">
+        <div id="crawl-login-file-input" onclick="openFile()">
+            <img id="img_file_input" src='./assets/images/file.png'>
+            <span id="span_file_input_success"></span>
+            <span id="span_file_input_error"></span>
+        </div>
+        <div class="crawl-login-crawl">
+            <div class="crawl-login-number-delay" id="div_delay_time">
+                <span>Thời gian nghỉ</span> <input type="number" id="second_crawl" max="60" min="10"
+                    value="10"><span>giây</span>
+            </div>
+            <div class="crawl-login-button-submit" id="btn_crawl" onclick="crawl()">
+                <span>Tra cứu thông tin</span>
+            </div>
+            <div class="crawl-login-loading" id="div_login_loading"></div>
+            <div class="div-progress-bar" id="div_progress_bar">
+                <div id="div_grey"></div>
+            </div>
+            <h4 id="success_text"></h4>
+            <h4 id="error_crawl"></h4>
+        </div>
+    </div>
+
 </body>
+<script type="text/javascript" src="./action.js"></script>
 </html>
