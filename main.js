@@ -66,11 +66,11 @@ function createWindow() {
     mainWindow.on('crashed', () => {
         win.destroy();
         createWindow();
-      });
+    });
 
-     mainWindow.loadURL(`file://${__dirname}/index.html`);
+    mainWindow.loadURL(`file://${__dirname}/index.html`);
     //mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${__dirname}/../build/index.html`);
-  
+
     // Build menu from template
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     // Insert menu
@@ -428,8 +428,8 @@ async function asyncForEach(array, startIndex, callback) {
 
 //crawl
 
-function doLogin(_username,_password) {
-    concurentLogin= null;
+function doLogin(_username, _password) {
+    concurentLogin = null;
     concurentLogin = puppeteer.launch({ headless: false, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
         mainBrowser = browser;
         pageLogin = await mainBrowser.newPage();
@@ -455,7 +455,7 @@ function doLogin(_username,_password) {
                 await mainBrowser.close();
                 concurentLogin = null;
 
-            }else { // dialog có nội dung chưa biết
+            } else { // dialog có nội dung chưa biết
                 await mainWindow.webContents.send(crawlCommand.loginSuccess, -1);
                 await mainWindow.webContents.send(crawlCommand.otp, -1);
                 console.log("uncaught exception");
@@ -562,7 +562,8 @@ function doCrawl() {
                     await page.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #btnSearch');
 
                     //đợi page load
-                    //cần xử lý
+                    //cần xử lý sleep vài giây
+                    await timer(1000);
 
                     await writeToXcell(index + rowSpacing, 1, inputPhoneNumberArray[index]);//"Số thuê bao",
 
@@ -595,6 +596,20 @@ function doCrawl() {
                     await writeToXcell(index + rowSpacing, 1, await (await page.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtHSD').getProperty('innerHTML')).jsonValue());//"Hạn sử dụng",
                     await writeToXcell(index + rowSpacing, 1, await (await page.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtKhuyenMai').getProperty('innerHTML')).jsonValue());//"Thuê bao trả trước được tham gia khuyến mại",
                     await writeToXcell(index + rowSpacing, 1, await (await page.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtKhuyenNghi').getProperty('innerHTML')).jsonValue());//"Gói cước trả trước ưu tiên mời KH đăng ký",
+
+                    //bấm vào 3g tab
+                    await page.$x("//span[contains(., 'Lịch sử 3G')]");
+
+                    //sleep đi 1 giây
+                    await timer(1000);
+
+                    let dataFromTable = await page.$$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor .box5 #tabContent table tr td', tableData => tableData.map((td) => {
+                        return td.innerHTML;
+                    }));
+
+                    for (let index = 0; index < dataFromTable.length; index++) {
+                        //dataFromTable
+                    }
 
                     //cần nghĩ thêm
                     //dịch vụ 3G
@@ -667,6 +682,6 @@ ipcMain.on(crawlCommand.openFile, async function (e, item) {
 ipcMain.on(crawlCommand.login, async function (e, item) {
     username = item.split(" ")[0];
     password = item.split(" ")[1];
-    doLogin(username,password);
+    doLogin(username, password);
 });
 
