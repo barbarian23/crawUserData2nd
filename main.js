@@ -18,7 +18,7 @@ var password = "";
 //danh sách số điện thoại
 let tResult = [];
 
-var mainWindow;
+let mainWindow;
 var mainBrowser = null;
 var exPath = '';
 var rowSpacing = 2;
@@ -62,6 +62,11 @@ function createWindow() {
             nodeIntegration: true
         }
     });
+
+    mainWindow.on('crashed', () => {
+        win.destroy();
+        createWindow();
+      });
 
      mainWindow.loadURL(`file://${__dirname}/index.html`);
     //mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${__dirname}/../build/index.html`);
