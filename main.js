@@ -18,6 +18,7 @@ var password = "";
 //danh sách số điện thoại
 let tResult = [];
 
+var mainWindow;
 var mainBrowser = null;
 var exPath = '';
 var rowSpacing = 2;
@@ -62,8 +63,9 @@ function createWindow() {
         }
     });
 
-    mainWindow.loadURL(`file://${__dirname}/index.html`);
-
+     mainWindow.loadURL(`file://${__dirname}/index.html`);
+    //mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${__dirname}/../build/index.html`);
+  
     // Build menu from template
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     // Insert menu
