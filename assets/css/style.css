@@ -1,13 +1,18 @@
 /* body */
 
 body {
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-background: #fafafa;
-font-family: Arial, Helvetica, sans-serif;
-color: #324b73;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #fafafa;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #324b73;
+    background: beige;
+}
+
+input :hover{
+    background: bisque;
 }
 
 /* Login */
@@ -16,8 +21,8 @@ color: #324b73;
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%,-50%);
-    display:flex;
+    transform: translate(-50%, -50%);
+    display: flex;
     width: 90%;
     height: 90%;
     flex-direction: column;
@@ -26,27 +31,27 @@ color: #324b73;
 }
 
 .crawl-login-username-password {
-    display:flex;
+    display: flex;
     width: 90%;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-.crawl-login-username-password-upper{
-    display:flex;
+.crawl-login-username-password-upper {
+    display: flex;
     width: 100%;
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
 }
 
-.crawl-login span{
+.crawl-login span {
     color: #324b73;
 }
 
-.crawl-login-username-password-below{
-    display:flex;
+.crawl-login-username-password-below {
+    display: flex;
     width: 100%;
     flex-direction: column;
     justify-content: center;
@@ -54,24 +59,26 @@ color: #324b73;
     margin: 5px auto 10px auto;
 }
 
-.crawl-login input{
+.crawl-login input {
     width: 100%;
     height: 45px;
     border-radius: 4px;
     border: 1px solid #324b73;
-    padding-left:  10px ;
-    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    padding-left: 10px;
+    -webkit-box-sizing: border-box;
+    /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;
+    /* Firefox, other Gecko */
     box-sizing: border-box;
     color: #324b73;
 }
 
-.crawl-login ::placeholder{
+.crawl-login ::placeholder {
     color: #324b73;
 }
 
-.crawl-login-button-submit{
-    display:flex;
+.crawl-login-button-submit {
+    display: flex;
     width: 30%;
     height: 50px;
     flex-direction: column;
@@ -81,16 +88,16 @@ color: #324b73;
     background: #324b73;
 }
 
-.crawl-login-button-submit span{
-    color:#fafafa;
+.crawl-login-button-submit span {
+    color: #fafafa;
 }
 
-.crawl-login-button-submit:active{
+.crawl-login-button-submit:active {
     transform: scale(1.2);
 }
 
-.crawl-login-success-contain{
-    display:flex;
+.crawl-login-success-contain {
+    display: flex;
     width: 90%;
     height: 90%;
     flex-direction: column;
@@ -98,37 +105,58 @@ color: #324b73;
     align-items: center;
 }
 
-#crawl_login_error_text{
-   display: none;
+#crawl_login_error_text {
+    display: none;
     font-size: 25px;
     font-weight: 600;
-    color:red;
+    color: red;
     position: absolute;
     bottom: 10px;
     animation: textshow 5s linear infinite alternate;
 }
 
 /* OTP */
-#crawl-login-success{
+
+#crawl_login_success {
     display: none;
 }
 
-#crawl_otp_error_text{
+#crawl_otp {
     display: none;
-     font-size: 25px;
-     font-weight: 600;
-     color:red;
-     position: absolute;
-     bottom: 10px;
-     animation: textshow 5s linear infinite alternate;
- }
+}
+
+#crawl_otp_error_text {
+    display: none;
+    font-size: 25px;
+    font-weight: 600;
+    color: red;
+    position: absolute;
+    bottom: 10px;
+    animation: textshow 5s linear infinite alternate;
+}
+
+#crawl_otp_success{
+    display: none;
+}
+
+#crawl_otp_validating_text {
+    display: none;
+    font-size: 25px;
+    font-weight: 600;
+    color: red;
+    position: absolute;
+    bottom: 10px;
+    animation: textshow 5s linear infinite alternate;
+}
+
 /* crawling */
-.div-craw{
-display: none;
+
+#div_craw {
+    display: none;
 }
 
 .crawl-login-crawl {
-    display:flex;
+    display: flex;
     width: 100%;
     height: 100%;
     flex-direction: column;
@@ -136,22 +164,24 @@ display: none;
     align-items: center;
 }
 
-#second_crawl{
+#second_crawl {
     width: 45px;
     height: 45px;
     border-radius: 4px;
     border: 1px solid #324b73;
-    padding-left:  10px ;
-    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    padding-left: 10px;
+    -webkit-box-sizing: border-box;
+    /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;
+    /* Firefox, other Gecko */
     box-sizing: border-box;
     color: #324b73;
 }
 
-#div-login-file-input{
+#div-login-file-input {
     margin-bottom: 5px;
-    top:1px;
-    left:20px;
+    top: 1px;
+    left: 20px;
     height: 50px;
     min-width: 100px;
     border: 1px solid #324b73;
@@ -163,7 +193,7 @@ display: none;
     align-items: center;
 }
 
-#div-login-file-input img{
+#div-login-file-input img {
     height: 35px;
     width: 35px;
     background-position: 100% 100%;
@@ -171,21 +201,20 @@ display: none;
     background-size: 100% 100%;
 }
 
-#div-login-file-input span{
+#div-login-file-input span {
     margin-left: 5px;
 }
 
-#span_file_input_success{
+#span_file_input_success {
     color: green;
 }
 
-#span_file_input_error{
+#span_file_input_error {
     color: red;
 }
 
-
 .crawl-login-number-delay {
-    display:flex;
+    display: flex;
     flex-direction: row;
     width: 250px;
     height: 45px;
@@ -194,8 +223,8 @@ display: none;
     justify-content: space-evenly;
 }
 
-.crawl-login-button-submit{
-    display:flex;
+.crawl-login-button-submit {
+    display: flex;
     width: 30%;
     height: 50px;
     flex-direction: column;
@@ -205,15 +234,15 @@ display: none;
     background: #324b73;
 }
 
-.crawl-login-button-submit span{
-    color:#fafafa;
+.crawl-login-button-submit span {
+    color: #fafafa;
 }
 
-.crawl-login-button-submit:active{
+.crawl-login-button-submit:active {
     transform: scale(1.2);
 }
 
-.div-progress-bar{
+.div-progress-bar {
     width: 100%;
     height: 24px;
     margin-top: 10px;
@@ -222,41 +251,74 @@ display: none;
     display: none;
 }
 
-#div_grey{
+#div_grey {
     height: 100%;
     width: 0%;
     background: #3498db;
 }
 
-#success_text{
+#success_text {
     display: none;
     color: green;
 }
 
-#error_crawl{
+#error_crawl {
     display: none;
     color: red;
 }
 
 /* animation */
-@keyframes textshow {
-    0%   {color:red}
-    25% {color:rgb(236, 212, 212)}
-    50%  {color:red}
-    75% {color:rgb(236, 212, 212)}
-    100% {color:red}
-  }
 
-  @keyframes shake {
-    0% { transform: translate(1px, 1px) rotate(0deg); }
-    10% { transform: translate(-1px, -2px) rotate(-1deg); }
-    20% { transform: translate(-3px, 0px) rotate(1deg); }
-    30% { transform: translate(3px, 2px) rotate(0deg); }
-    40% { transform: translate(1px, -1px) rotate(1deg); }
-    50% { transform: translate(-1px, 2px) rotate(-1deg); }
-    60% { transform: translate(-3px, 1px) rotate(0deg); }
-    70% { transform: translate(3px, 1px) rotate(-1deg); }
-    80% { transform: translate(-1px, -1px) rotate(1deg); }
-    90% { transform: translate(1px, 2px) rotate(0deg); }
-    100% { transform: translate(1px, -2px) rotate(-1deg); }
-  }
+@keyframes textshow {
+    0% {
+        opacity: 1;
+    }
+    25% {
+        opacity: 0.2;
+    }
+    50% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 0.2;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+    0% {
+        transform: translate(1px, 1px) rotate(0deg);
+    }
+    10% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+    }
+    20% {
+        transform: translate(-3px, 0px) rotate(1deg);
+    }
+    30% {
+        transform: translate(3px, 2px) rotate(0deg);
+    }
+    40% {
+        transform: translate(1px, -1px) rotate(1deg);
+    }
+    50% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+    }
+    60% {
+        transform: translate(-3px, 1px) rotate(0deg);
+    }
+    70% {
+        transform: translate(3px, 1px) rotate(-1deg);
+    }
+    80% {
+        transform: translate(-1px, -1px) rotate(1deg);
+    }
+    90% {
+        transform: translate(1px, 2px) rotate(0deg);
+    }
+    100% {
+        transform: translate(1px, -2px) rotate(-1deg);
+    }
+}
