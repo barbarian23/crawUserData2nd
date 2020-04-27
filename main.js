@@ -344,11 +344,10 @@ async function readFile(callback) {
         await mainWindow.webContents.send(crawlCommand.readErrorNull, fileNametxtRemoveExxtension);
     } else {
         tResult = [];
-        //assync 1 mangr
+        //assync 1 mảng
         await asyncReadFileExcel(data, function (item) {
             tResult.push(item);
         })
-
         console.log(tResult);
 
         if (isNew == true) {
@@ -402,7 +401,7 @@ function timer(ms) {
 
 async function asyncReadFileExcel(array, callback) {
     for (let index = 0; index < array.length; index++) {
-        await callback(array[index]['Số điện thoại'], index);
+        await callback(array[index]["Số thuê bao"], index);
     }
 }
 
