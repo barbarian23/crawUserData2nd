@@ -8,7 +8,6 @@ const crawlCommand = {
     wrongPhoneNumber: "crawl:incorrect_number",
     hideBTN: "crawl:hideBTN",
     networkError: "crawl:network_error",
-    running: "crawl:onrunning",
     result: "crawl:result",
     readError: "crawl:read_error",
     readErrorNull: "crawl:read_error_null",
@@ -20,21 +19,25 @@ const crawlCommand = {
     runWithFile: "crawl:runwithfile",
     onRunning: "crawl:onrunning",
     loginSuccess: "crawl:login_success",
+    log: "crawl:log"
 };
 
 function openFile() {
-    ipcRenderer.send('crawl:openFile', true);
+    ipcRenderer.send(crawlCommand.openFile, true);
 }
 
+ipcRenderer.on(crawlCommand.log, (e, item) => {
+    console.log("puppeteer log", item);
+});
 
 ipcRenderer.on(crawlCommand.inputfileNotexcel, (e, item) => {
     if (item) {
-        document.getElementById("error_crawl").innerHTML = "Tệp danh sách số điện thoại cần phải là tệp .txt";
+        document.getElementById("error_crawl").innerHTML = "Tệp danh sách số điện thoại cần phải là tệp .xlsx";
         document.getElementById("error_crawl").style.display = 'block';
         document.getElementById("btn_crawl").style.display = 'flex';
         //document.getElementById("error_text").style.display = 'none';
         document.getElementById("span_file_input_error").style.display = 'block';
-        document.getElementById("span_file_input_error").innerHTML = "Tệp danh sách số điện thoại cần phải là tệp .txt.Bám vào đây đẻ chọn lại";
+        document.getElementById("span_file_input_error").innerHTML = "Tệp danh sách số điện thoại cần phải là tệp .xlsx.Bấm vào đây đẻ chọn lại";
         document.getElementById("span_file_input_success").style.display = 'none';
     } else {
         document.getElementById("div-login-file-input").style.display = 'flex';
@@ -63,9 +66,9 @@ ipcRenderer.on(crawlCommand.result, (e, item) => {
         document.getElementById("div_delay_time").style.display = 'flex';
 
         document.getElementById("span_file_input_error").style.display = 'none';
-        if (newFileNameTxt != ""){
-            document.getElementById("span_file_input_success").innerHTML = "Truy xuất dữ liệu từ tệp " + fileNameTXT + " thành công.Tệp chuẩn bị là "+newFileNameTxt;
-        }else {
+        if (newFileNameTxt != "") {
+            document.getElementById("span_file_input_success").innerHTML = "Truy xuất dữ liệu từ tệp " + fileNameTXT + " thành công.Tệp chuẩn bị là " + newFileNameTxt;
+        } else {
             document.getElementById("span_file_input_success").innerHTML = "Truy xuất dữ liệu từ tệp " + fileNameTXT + " thành công.Bấm vào đây để chọn lại tệp";
         }
         document.getElementById("span_file_input_success").style.display = 'block';
@@ -99,7 +102,7 @@ ipcRenderer.on(crawlCommand.readSuccessFirtTime, (e, item) => {
 
 //đã chọn mới một file txt khác
 ipcRenderer.on(crawlCommand.readrSuccessNew, (e, item) => {
-    newFileNameTxt = item ;
+    newFileNameTxt = item;
     document.getElementById("btn_crawl").style.display = 'flex';
     document.getElementById("div_delay_time").style.display = 'flex';
     document.getElementById("error_crawl").style.display = 'none';
@@ -163,7 +166,7 @@ ipcRenderer.on(crawlCommand.onRunning, (e, item) => {
     let tItem = item.split(" ");
     let tResult = Math.round(Number.parseFloat(tItem[0]) / Number.parseFloat(tItem[1]) * 100 * 100) / 100;
     document.getElementById("div_grey").style.width = tResult + "%";
-    document.getElementById("success_text").innerHTML = "Tệp ''"+fileNameTXT+"'' --- Đã hoàn thành " + tResult + "% - ( " + tItem[0] + "/" + tItem[1] + " )";
+    document.getElementById("success_text").innerHTML = "Tệp ''" + fileNameTXT + "'' --- Đã hoàn thành " + tResult + "% - ( " + tItem[0] + "/" + tItem[1] + " )";
 
 });
 
@@ -179,14 +182,14 @@ ipcRenderer.on(crawlCommand.hideBTN, (e, item) => {
     }
 });
 
-ipcRenderer.on(crawlCommand.loginSuccess, (e, item) => {
+ipcRenderer.on(crawlCommand.loginSuccess, (e, item) => {console.log("loginSuccess",item);
     if (item === 1) {
         loginSuccess();
-    } else if (item === 0){
+    } else if (item === 0) {
         document.getElementById("crawl_login_error_text").innerHTML = "Sai tên đăng nhập hoặc mật khẩu";
         document.getElementById("crawl_login_error_text").style.color = 'red';
         document.getElementById("crawl_login_error_text").style.display = 'block';
-    }else if (item === -1){
+    } else if (item === -1) {
         document.getElementById("crawl_login_error_text").innerHTML = "Có lỗi khi đăng nhập,vui lòng thử lại";
         document.getElementById("crawl_login_error_text").style.color = 'red';
         document.getElementById("crawl_login_error_text").style.display = 'block';
@@ -194,15 +197,19 @@ ipcRenderer.on(crawlCommand.loginSuccess, (e, item) => {
         document.getElementById("crawl_login_error_text").innerHTML = "Đang đăng nhập vui lòng đợi ....";
         document.getElementById("crawl_login_error_text").style.color = 'green';
         document.getElementById("crawl_login_error_text").style.display = 'block';
-    }else if (item == -3) {
+    } else if (item == -2) {
+        document.getElementById("crawl_login_error_text").innerHTML = "Mật khẩu phải ít nhất 8 ký tự, 1 ký tự hoa, 1 ký tự đặc biệt, 1 ký tự số";
+        document.getElementById("crawl_login_error_text").style.color = 'red';
+        document.getElementById("crawl_login_error_text").style.display = 'block';
+    } else if (item == -3) {
         document.getElementById("crawl_login_error_text").innerHTML = "Sai mật khẩu ....";
-        document.getElementById("crawl_login_error_text").style.color = 'green';
+        document.getElementById("crawl_login_error_text").style.color = 'red';
         document.getElementById("crawl_login_error_text").style.display = 'block';
     }
 });
 
 
-function login(){
+function login() {
     document.getElementById("crawl_login_error_text").style.display = 'none';
     let user = document.getElementById("username").value;
     let pass = document.getElementById("password").value;
@@ -215,7 +222,7 @@ function login(){
         document.getElementById("crawl_login_error_text").innerHTML = "Cần nhập mật khẩu";
         document.getElementById("crawl_login_error_text").style.display = 'block';
     } else {
-        ipcRenderer.send(crawlCommand.login,user + " " + pass);
+        ipcRenderer.send(crawlCommand.login, user + " " + pass);
     }
 }
 
@@ -228,41 +235,41 @@ function loginSuccess() {
         //hiện otp
         document.getElementById("crawl_otp").style.display = 'flex';
         document.getElementById("crawl_login_success").style.display = 'none';
-    }, 800)
+    }, 850)
 }
 
 ipcRenderer.on(crawlCommand.otp, (e, item) => {
     if (item === 1) {
         otpSuccess();
-    } else if (item === 0){
-        document.getElementById("crawl_login_error_text").innerHTML = "Mật khẩu OTP không đúng, vui lòng điền lại";
-        document.getElementById("crawl_login_error_text").style.color = 'red';
-        document.getElementById("crawl_login_error_text").style.display = 'block';
-    }else if (item === -1){
-        document.getElementById("crawl_login_error_text").innerHTML = "Có lỗi khi xác thực OTP, vui lòng thử lại";
-        document.getElementById("crawl_login_error_text").style.color = 'red';
-        document.getElementById("crawl_login_error_text").style.display = 'block';
+    } else if (item === 0) {
+        document.getElementById("crawl_otp_error_text").innerHTML = "Mật khẩu OTP không đúng, vui lòng điền lại";
+        document.getElementById("crawl_otp_error_text").style.color = 'red';
+        document.getElementById("crawl_otp_error_text").style.display = 'block';
+    } else if (item === -1) {
+        document.getElementById("crawl_otp_error_text").innerHTML = "Có lỗi khi xác thực OTP, vui lòng thử lại";
+        document.getElementById("crawl_otp_error_text").style.color = 'red';
+        document.getElementById("crawl_otp_error_text").style.display = 'block';
     } else if (item == 2) {
-        document.getElementById("crawl_login_error_text").innerHTML = "Đang xác thực OTP vui lòng đợi ....";
-        document.getElementById("crawl_login_error_text").style.color = 'green';
-        document.getElementById("crawl_login_error_text").style.display = 'block';
-    }else if (item == -2) {
-        document.getElementById("crawl_login_error_text").innerHTML = "Mật khẩu OTP đã hết hạn, bạn vui lòng đăng nhập lại ....";
-        document.getElementById("crawl_login_error_text").style.color = 'red';
-        document.getElementById("crawl_login_error_text").style.display = 'block';
-        otpTimeOut() ;
+        document.getElementById("crawl_otp_error_text").innerHTML = "Đang xác thực OTP vui lòng đợi ....";
+        document.getElementById("crawl_otp_error_text").style.color = 'green';
+        document.getElementById("crawl_otp_error_text").style.display = 'block';
+    } else if (item == -2) {
+        document.getElementById("crawl_otp_error_text").innerHTML = "Mật khẩu OTP đã hết hạn, bạn vui lòng đăng nhập lại ....";
+        document.getElementById("crawl_otp_error_text").style.color = 'red';
+        document.getElementById("crawl_otp_error_text").style.display = 'block';
+        otpTimeOut();
     }
 });
 
 
-function otp(){
+function otp() {
     document.getElementById("crawl_otp_error_text").style.display = 'none';
-    let otpText = document.getElementById("username").value;
+    let otpText = document.getElementById("otpText").value;console.log("otp",otpText);
     if (!otpText) {
         document.getElementById("otpText").focus();
         document.getElementById("crawl_otp_error_text").innerHTML = "Cần nhập mật khẩu OTP";
         document.getElementById("crawl_otp_error_text").style.display = 'block';
-    }else {
+    } else {
         ipcRenderer.send(crawlCommand.otp, otpText);
     }
 }
@@ -291,7 +298,7 @@ function otpTimeOut() {
     document.getElementById("crawl_otp_success").style.display = 'flex';
     document.getElementById("crawl_otp_validating_text").style.display = "block";
     document.getElementById("crawl_otp_validating_text").style.color = "red";
-    document.getElementById("crawl_otp_validating_text").style.color = "Mật khẩu OTP không đúng, bạn vui lòng đưang nhập lại";
+    document.getElementById("crawl_otp_validating_text").style.color = "Mật khẩu OTP đã hết hạn, bạn vui lòng đăng nhập lại ....";
 
     setTimeout(() => {
         //hiện lại login
@@ -301,10 +308,30 @@ function otpTimeOut() {
     }, 850)
 }
 
-function crawl(){
+function crawl() {
+    document.getElementById("error_crawl").style.display = 'none';
+    document.getElementById("success_text").style.display = 'none';
+    
+    document.getElementById("div_login_loading").style.display = 'block';
+    document.getElementById("div_progress_bar").style.display = 'block';
 
+    document.getElementById("success_text").style.display = 'block';
+    document.getElementById("span_file_input_error").style.display = 'none';
+    document.getElementById("success_text").innerHTML = "0%";
+    document.getElementById("div_grey").style.width = "0%";
+    let delayTime = document.getElementById("second_crawl").value;
+    delayTime = delayTime * 1000;
+    ipcRenderer.send(crawlCommand.doCrawl, delayTime);
+    document.getElementById("btn_crawl").style.display = 'none';
+    document.getElementById("div_delay_time").style.display = 'none';
+    if (newFileNameTxt != ""){
+        fileNameTXT=newFileNameTxt;
+    }
+    newFileNameTxt="";
+    document.getElementById("span_file_input_success").innerHTML = "Tệp bạn chọn tên là '" + fileNameTXT + "'.Bấm vào đây để chọn lại tệp";
+    document.getElementById("span_file_input_success").style.display = 'block';
 }
 
-function openFile(){
+function openFile() {
     ipcRenderer.send(crawlCommand.openFile, true);
 }

@@ -105,6 +105,11 @@ input :hover{
     align-items: center;
 }
 
+.crawl-login-success-contain h2{
+    color: green;
+    animation: textshow 5s linear infinite alternate;
+}
+
 #crawl_login_error_text {
     display: none;
     font-size: 25px;
