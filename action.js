@@ -1,6 +1,27 @@
 const electron = require('electron');
 const { ipcRenderer } = electron;
 
+const crawlCommand = {
+    login: "crawl:login",
+    otp: "crawl:otp",
+    openFile: "crawl:openFile",
+    wrongPhoneNumber: "crawl:incorrect_number",
+    hideBTN: "crawl:hideBTN",
+    networkError: "crawl:network_error",
+    running: "crawl:onrunning",
+    result: "crawl:result",
+    readError: "crawl:read_error",
+    readErrorNull: "crawl:read_error_null",
+    readSuccess: "crawl:read_sucess_new",
+    readSuccessFirtTime: "crawl:read_sucess_first_time",
+    inputfileNotexcel: "crawl:error_choose_not_xlsx",
+    doCrawl: "crawl:do",
+    readrSuccessNew: "crawl:read_sucess_new",
+    runWithFile: "crawl:runwithfile",
+    onRunning: "crawl:onrunning",
+    loginSuccess: "crawl:login_success",
+};
+
 function openFile() {
     ipcRenderer.send('crawl:openFile', true);
 }
@@ -185,17 +206,16 @@ function login(){
     document.getElementById("crawl_login_error_text").style.display = 'none';
     let user = document.getElementById("username").value;
     let pass = document.getElementById("password").value;
-
     if (!user) {
         document.getElementById("username").focus();
-        document.getElementById("crawl_login_error_text").innerHTML = "Cần nhập tên đăng nhập";
+        document.getElementById("crawl_login_error_text").innerHTML = "Cần nhập tên đăng nhập ";
         document.getElementById("crawl_login_error_text").style.display = 'block';
     } else if (!pass) {
         document.getElementById("password").focus();
         document.getElementById("crawl_login_error_text").innerHTML = "Cần nhập mật khẩu";
         document.getElementById("crawl_login_error_text").style.display = 'block';
     } else {
-        ipcRenderer.send("crawl:login",user + " " + pass);
+        ipcRenderer.send(crawlCommand.login,user + " " + pass);
     }
 }
 
@@ -210,6 +230,30 @@ function loginSuccess() {
         document.getElementById("crawl_login_success").style.display = 'none';
     }, 800)
 }
+
+ipcRenderer.on(crawlCommand.otp, (e, item) => {
+    if (item === 1) {
+        otpSuccess();
+    } else if (item === 0){
+        document.getElementById("crawl_login_error_text").innerHTML = "Mật khẩu OTP không đúng, vui lòng điền lại";
+        document.getElementById("crawl_login_error_text").style.color = 'red';
+        document.getElementById("crawl_login_error_text").style.display = 'block';
+    }else if (item === -1){
+        document.getElementById("crawl_login_error_text").innerHTML = "Có lỗi khi xác thực OTP, vui lòng thử lại";
+        document.getElementById("crawl_login_error_text").style.color = 'red';
+        document.getElementById("crawl_login_error_text").style.display = 'block';
+    } else if (item == 2) {
+        document.getElementById("crawl_login_error_text").innerHTML = "Đang xác thực OTP vui lòng đợi ....";
+        document.getElementById("crawl_login_error_text").style.color = 'green';
+        document.getElementById("crawl_login_error_text").style.display = 'block';
+    }else if (item == -2) {
+        document.getElementById("crawl_login_error_text").innerHTML = "Mật khẩu OTP đã hết hạn, bạn vui lòng đăng nhập lại ....";
+        document.getElementById("crawl_login_error_text").style.color = 'red';
+        document.getElementById("crawl_login_error_text").style.display = 'block';
+        otpTimeOut() ;
+    }
+});
+
 
 function otp(){
     document.getElementById("crawl_otp_error_text").style.display = 'none';
@@ -264,24 +308,3 @@ function crawl(){
 function openFile(){
     ipcRenderer.send(crawlCommand.openFile, true);
 }
-
-var crawlCommand = {
-    login: "crawl:login",
-    otp: "crawl:otp",
-    openFile: "crawl:openFile",
-    wrongPhoneNumber: "crawl:incorrect_number",
-    hideBTN: "crawl:hideBTN",
-    networkError: "crawl:network_error",
-    running: "crawl:onrunning",
-    result: "crawl:result",
-    readError: "crawl:read_error",
-    readErrorNull: "crawl:read_error_null",
-    readSuccess: "crawl:read_sucess_new",
-    readSuccessFirtTime: "crawl:read_sucess_first_time",
-    inputfileNotexcel: "crawl:error_choose_not_xlsx",
-    doCrawl: "crawl:do",
-    readrSuccessNew: "crawl:read_sucess_new",
-    runWithFile: "crawl:runwithfile",
-    onRunning: "crawl:onrunning",
-    loginSuccess: "crawl:login_success",
-};

@@ -33,7 +33,7 @@ var timoutOTP = "Phiên kiểm tra Otp hết hạn, hệ thống trở về tran
 
 var crawlUrl = "http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
 
-var crawlCommand = {
+const crawlCommand = {
     login: "crawl:login",
     otp: "crawl:otp",
     openFile: "crawl:openFile",
@@ -62,6 +62,9 @@ function createWindow() {
             nodeIntegration: true
         }
     });
+
+    //dev tool
+    mainWindow.webContents.openDevTools();
 
     mainWindow.on('crashed', () => {
         win.destroy();
@@ -432,12 +435,24 @@ function doLogin(_username, _password) {
     concurentLogin = puppeteer.launch({ headless: false, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
         mainBrowser = browser;
         pageLogin = await mainBrowser.newPage();
+        
         //đang login
         await mainWindow.webContents.send(crawlCommand.loginSuccess, 2);
-        await pageLogin.goto(crawlUrl);
+        await pageLogin.goto(crawlUrl, { waitUntil: 'networkidle0' });
         pageLogin.setViewport({ width: 2600, height: 3000 });
+
         //có dialog hiệnh lên
         pageLogin.on('dialog', async dialog => {
+
+            let mssg = dialog.message();
+
+            await pageLogin.evaluate(({ mssg }) => {
+            
+                console.log('puppeteer alert wwith: ',mssgt);
+    
+            }, { mssg });
+
+
             //await mainWindow.webContents.send('crawl:incorrect_number', inputPhoneNumberArray[cIII]);
             if (dialog.message() == wrongLogin) {
                 await mainWindow.webContents.send(crawlCommand.loginSuccess, 0);
@@ -450,26 +465,46 @@ function doLogin(_username, _password) {
             } else if (dialog.message() == timoutOTP) {
                 //phiên kiểm tra hết hạn, đóng trình duyệt mở lại login
                 await mainWindow.webContents.send(crawlCommand.otp, -2);
-                dialog.dismiss();
-                await mainBrowser.close();
-                concurentLogin = null;
+               // dialog.dismiss();
+               // await mainBrowser.close();
+               // concurentLogin = null;
 
             } else { // dialog có nội dung chưa biết
                 await mainWindow.webContents.send(crawlCommand.loginSuccess, -1);
                 await mainWindow.webContents.send(crawlCommand.otp, -1);
                 console.log("uncaught exception");
-                await mainBrowser.close();
-                concurentLogin = null;
+              //  await mainBrowser.close();
+               // concurentLogin = null;
             }
             dialog.dismiss();
-            await mainBrowser.close();
-            concurentLogin = null;
+           // await mainBrowser.close();
+          //  concurentLogin = null;
         });
 
-        await pageLogin.$eval('.wrap-body .inner .tbl-login #txtPassword', (el, value) => el.value = value, _username);
-        await pageLogin.$eval('.wrap-body .inner .tbl-login #txtUsername', (el, value) => el.value = value, _password);
+        //await pageLogin.waitForNavigation({ waitUntil: 'networkidle0' });
 
-        await pageLogin.click('.wrap-login .inner .tbl-login #btnLogin');
+        // await pageLogin.$eval('body #ctl01 .wrap-body .inner .tbl-login #txtUsername', (el, value) => el.value = value, _username);
+        // await pageLogin.$eval('body #ctl01 .wrap-body .inner .tbl-login #txtPassword', (el, value) => el.value = value, _password);
+
+        // await pageLogin.click('#ctl01 .wrap-login .inner .tbl-login #btnLogin');
+
+          await pageLogin.evaluate(({ _username, _password }) => {
+            document.getElementById("txtUsername").value = "ntttrang_ttu_vnp2";
+            document.getElementById("txtPassword").value = "Lam1234@";
+            document.getElementById("btnLogin").click();
+
+            let windowAlert = window.alert;
+
+            window.alert = function (message) {
+                
+                return windowAlert(message);
+            };
+            console.log('window.alert called with message: ',window.alert);
+            console.log("table",document.getElementsByClassName("tbl-login")[0].innerHTML);
+
+           
+
+        }, { _username, _password });
 
         try {
             await pageLogin.waitForNavigation({ waitUntil: 'networkidle0' });
@@ -486,19 +521,26 @@ function doLogin(_username, _password) {
 
             await pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess');
 
-            //đang xác thực OTP
-            await mainWindow.webContents.send(crawlCommand.loginSuccess, 2);
+            await pageLogin.evaluate( ({ite}) => {
+                document.getElementById("txtOtp").value = ite;
+                document.getElementById("btnProcess").click;
+                console.log("opt "+ite);
+                console.log( document.getElementById("txtOtp")+" "+document.getElementById("btnProcess"));
+              },{item} );
 
-            await mainBrowser.close();
-            concurentLogin = null;
+            //đang xác thực OTP
+            await mainWindow.webContents.send(crawlCommand.otp, 2);
+
+           // await mainBrowser.close();
+           // concurentLogin = null;
         });
 
 
     }).catch(async (err, browser) => {
         console.log("login error", err);
         await mainWindow.webContents.send(crawlCommand.loginSuccess, -1);
-        await mainBrowser.close();
-        concurentLogin = null;
+      //  await mainBrowser.close();
+      //  concurentLogin = null;
     });
 }
 
@@ -514,7 +556,9 @@ function doCrawl() {
         concurentPup = puppeteer.launch({ headless: true, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
             page = await browser.newPage();
 
-            await page.goto(crawlUrl);
+            await page.goto(crawlUrl, { waitUntil: 'networkidle0' });
+
+            //console.log(await (await page.$$('body').getProperty('innerHTML')).jsonValue());
             page.setViewport({ width: 2600, height: 3000 });
             page.on('dialog', async dialog => {
                 if (dialog.message() == wrongPhoneNumber) {
@@ -549,7 +593,7 @@ function doCrawl() {
             await page.waitForNavigation({ waitUntil: 'networkidle0' })
 
 
-            await page.goto(crawlUrl);
+            //await page.goto(crawlUrl);
 
             const start = async () => {
                 await asyncForEach(inputPhoneNumberArray, startStartIndex, async (element, index) => {
