@@ -1,6 +1,11 @@
 const electron = require('electron');
 const { ipcRenderer } = electron;
 
+var crawling = false;
+
+var fileNameTXT = "";
+var newFileNameTxt = "";
+
 const crawlCommand = {
     login: "crawl:login",
     otp: "crawl:otp",
@@ -267,7 +272,7 @@ ipcRenderer.on(crawlCommand.otp, (e, item) => {
         document.getElementById("crawl_otp_error_text").style.color = 'red';
         document.getElementById("crawl_otp_error_text").style.display = 'block';
     } else if (item == 2) {
-        showProgressBarOTP() ;
+        showProgressBarOTP();
         document.getElementById("crawl_otp_error_text").innerHTML = "Đang xác thực OTP vui lòng đợi ....";
         document.getElementById("crawl_otp_error_text").style.color = 'green';
         document.getElementById("crawl_otp_error_text").style.display = 'block';
@@ -282,7 +287,7 @@ ipcRenderer.on(crawlCommand.otp, (e, item) => {
 
 function otp() {
     document.getElementById("crawl_otp_error_text").style.display = 'none';
-    showProgressBarOTP() ;
+    showProgressBarOTP();
     let otpText = document.getElementById("otpText").value; console.log("otp", otpText);
     if (!otpText) {
         document.getElementById("otpText").focus();
@@ -343,6 +348,8 @@ function crawl() {
 
     document.getElementById("div_login_loading").style.display = 'block';
     document.getElementById("div_progress_bar").style.display = 'block';
+
+    document.getElementById("crawl_login_file_input").style.display = 'block';
 
     document.getElementById("success_text").style.display = 'block';
     document.getElementById("span_file_input_error").style.display = 'none';

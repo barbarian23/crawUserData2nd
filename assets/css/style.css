@@ -213,6 +213,10 @@ input :hover {
 #crawl_login_file_input img {
     height: 35px;
     width: 35px;
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform: translate(-50%,-50%);
     background-position: 100% 100%;
     background-repeat: no-repeat;
     background-size: 100% 100%;
