@@ -9,7 +9,7 @@
 
 <body>
     <!-- Login -->
-    <div class="crawl-login" id="crawl_login" >
+    <div class="crawl-login" id="crawl_login">
         <div class="crawl-login-username-password">
             <div class="crawl-login-username-password-upper">
                 <span>Tên đăng nhập</span>
@@ -28,9 +28,15 @@
             </div>
         </div>
 
-        <div class="crawl-login-button-submit" onclick="login()">
+        <div class="crawl-login-button-submit" id="crawl_login_button_submit" onclick="login()">
             <span>Đăng nhập</span>
         </div>
+
+        <!-- loading bar -->
+        <div class="crawl-login-otp-progressbar" id="crawl_login_progress_bar">
+
+        </div>
+
         <h4 id="crawl_login_error_text">123</h4>
     </div>
 
@@ -43,7 +49,7 @@
     </div>
 
     <!-- OTP -->
-    <div class="crawl-login" id="crawl_otp" >
+    <div class="crawl-login" id="crawl_otp">
         <div class="crawl-login-username-password">
             <div class="crawl-login-username-password-upper">
                 <span>Xác nhận mật khẩu OTP</span>
@@ -53,9 +59,15 @@
             </div>
         </div>
 
-        <div class="crawl-login-button-submit" onclick="otp()">
+        <div class="crawl-login-button-submit" id="crawl_otp_button_submit" onclick="otp()">
             <span>Xác nhận</span>
         </div>
+
+        <!-- loading bar -->
+        <div class="crawl-login-otp-progressbar" id="crawl_otp_progress_bar">
+
+        </div>
+
         <h4 id="crawl_otp_error_text">123</h4>
     </div>
 
@@ -68,7 +80,7 @@
 
     <!-- crawling -->
     <div class="crawl-login" id="div_craw">
-        <div id="crawl-login-file-input" onclick="openFile()">
+        <div id="crawl_login_file_input" onclick="openFile()">
             <img id="img_file_input" src='./assets/images/file.png'>
             <span id="span_file_input_success"></span>
             <span id="span_file_input_error"></span>
@@ -92,4 +104,5 @@
 
 </body>
 <script type="text/javascript" src="./action.js"></script>
+
 </html>

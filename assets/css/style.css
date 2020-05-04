@@ -11,7 +11,7 @@ body {
     background: beige;
 }
 
-input :hover{
+input :hover {
     background: bisque;
 }
 
@@ -88,6 +88,18 @@ input :hover{
     background: #4e3861;
 }
 
+.crawl-login-otp-progressbar {
+    border: 16px solid #f3f3f3;
+    /* Light grey */
+    border-top: 16px solid #4e3861;
+    /* Blue */
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: none;
+    animation: spin 2s linear infinite;
+}
+
 .crawl-login-button-submit span {
     color: #fafafa;
 }
@@ -105,7 +117,7 @@ input :hover{
     align-items: center;
 }
 
-.crawl-login-success-contain h2{
+.crawl-login-success-contain h2 {
     color: green;
     animation: textshow 5s linear infinite alternate;
 }
@@ -140,7 +152,7 @@ input :hover{
     animation: textshow 5s linear infinite alternate;
 }
 
-#crawl_otp_success{
+#crawl_otp_success {
     display: none;
 }
 
@@ -183,7 +195,7 @@ input :hover{
     color: #4e3861;
 }
 
-#div-login-file-input {
+#crawl_login_file_input {
     margin-bottom: 5px;
     top: 1px;
     left: 20px;
@@ -198,7 +210,7 @@ input :hover{
     align-items: center;
 }
 
-#div-login-file-input img {
+#crawl_login_file_input img {
     height: 35px;
     width: 35px;
     background-position: 100% 100%;
@@ -206,7 +218,7 @@ input :hover{
     background-size: 100% 100%;
 }
 
-#div-login-file-input span {
+#crawl_login_file_input span {
     margin-left: 5px;
 }
 
@@ -251,7 +263,7 @@ input :hover{
     width: 100%;
     height: 24px;
     margin-top: 10px;
-    border: 1px solid #3498db;
+    border: 1px solid #4e3861;
     background: transparent;
     display: none;
 }
@@ -259,7 +271,7 @@ input :hover{
 #div_grey {
     height: 100%;
     width: 0%;
-    background: #3498db;
+    background: #4e3861;
 }
 
 #success_text {
@@ -273,6 +285,15 @@ input :hover{
 }
 
 /* animation */
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
 
 @keyframes textshow {
     0% {
