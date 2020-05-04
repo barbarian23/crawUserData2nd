@@ -197,9 +197,12 @@ ipcRenderer.on(crawlCommand.loginSuccess, (e, item) => {
         document.getElementById("crawl_login_error_text").style.color = 'red';
         document.getElementById("crawl_login_error_text").style.display = 'block';
     } else if (item === -1) {
-        document.getElementById("crawl_login_error_text").innerHTML = "Có lỗi khi đăng nhập,vui lòng thử lại";
-        document.getElementById("crawl_login_error_text").style.color = 'red';
-        document.getElementById("crawl_login_error_text").style.display = 'block';
+        let tempValue = document.getElementById("crawl_login_error_text").innerHTML;
+        if (tempValue == "Đang đăng nhập vui lòng đợi .... ||" || tempValue == null ) {
+            document.getElementById("crawl_login_error_text").innerHTML = "Có lỗi khi đăng nhập,vui lòng thử lại";
+            document.getElementById("crawl_login_error_text").style.color = 'red';
+            document.getElementById("crawl_login_error_text").style.display = 'block';
+        }
     } else if (item == 2) {
         showProgressBarLogin()
         document.getElementById("crawl_login_error_text").innerHTML = "Đang đăng nhập vui lòng đợi ....";
@@ -254,6 +257,8 @@ function loginSuccess() {
     setTimeout(() => {
         //hiện otp
         document.getElementById("crawl_otp").style.display = 'flex';
+        document.getElementById("crawl_otp_error_text").style.display = 'none';
+
         document.getElementById("crawl_login_success").style.display = 'none';
     }, 850)
 }
@@ -337,6 +342,8 @@ function otpTimeOut() {
     setTimeout(() => {
         //hiện lại login
         document.getElementById("crawl_login").style.display = 'flex';
+        document.getElementById("crawl_login_error_text").style.display = 'none';
+        
         document.getElementById("crawl_otp_success").style.display = 'none';
         document.getElementById("crawl_otp_validating_text").style.display = "none";
     }, 850)

@@ -466,12 +466,18 @@ function doLogin(_username, _password) {
             if (dialog.message() == wrongLogin) {
                 await mainWindow.webContents.send(crawlCommand.log, 'wrongLogin');
                 await mainWindow.webContents.send(crawlCommand.loginSuccess, 0);
+                await browser.close();
+                concurentLogin = null;
             } else if (dialog.message() == wrongPassword) {
                 await mainWindow.webContents.send(crawlCommand.log, 'wrongPassword');
                 await mainWindow.webContents.send(crawlCommand.loginSuccess, -2);
+                await browser.close();
+                concurentLogin = null;
             } else if (dialog.message() == lackPassword) {
                 await mainWindow.webContents.send(crawlCommand.log, 'lackPassword');
                 await mainWindow.webContents.send(crawlCommand.loginSuccess, -3);
+                await browser.close();
+                concurentLogin = null;
             } else if (dialog.message() == wrongOTP) {
                 await mainWindow.webContents.send(crawlCommand.otp, 0);
                 await mainWindow.webContents.send(crawlCommand.log, 'wrongOTP');
@@ -479,7 +485,7 @@ function doLogin(_username, _password) {
                 //phiên kiểm tra hết hạn, đóng trình duyệt mở lại login
                 await mainWindow.webContents.send(crawlCommand.otp, -2);
                 await mainWindow.webContents.send(crawlCommand.log, 'timoutOTP');
-                await mainBrowser.close();
+                await browser.close();
                 concurentLogin = null;
             }
             //phần crawl dữ liệu, có dialog số điện thoại không hợp lệ(số dài hơn hoặc ngắn hơn quy định)
@@ -512,9 +518,9 @@ function doLogin(_username, _password) {
 
 
         //ngăn race condition
-        await Promise.all([pageLogin.click('#ctl01 .wrap-login .inner .tbl-login #btnLogin'), pageLogin.waitForNavigation()]);
+        await Promise.all([pageLogin.click('#ctl01 .wrap-login .inner .tbl-login #btnLogin'), pageLogin.waitForNavigation({ waitUntil: 'networkidle0' })]);
 
-        await mainWindow.webContents.send(crawlCommand.log, 'waiting login');
+        //await mainWindow.webContents.send(crawlCommand.log, 'waiting login');
 
 
         //đăng nhập thành công
