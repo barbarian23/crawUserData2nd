@@ -5,6 +5,7 @@ var crawling = false;
 
 var fileNameTXT = "";
 var newFileNameTxt = "";
+var currentOTPStatus = -100;
 
 const crawlCommand = {
     login: "crawl:login",
@@ -24,7 +25,8 @@ const crawlCommand = {
     runWithFile: "crawl:runwithfile",
     onRunning: "crawl:onrunning",
     loginSuccess: "crawl:login_success",
-    log: "crawl:log"
+    log: "crawl:log",
+    allowToWrite:"crawl:log", // cho phép write hoặc không, mắc định là cho phép, chỉ khi có dialog , mất kết nối mạng, hoặc sesion timeout , số không hợp lệ, không tìm thấy số
 };
 
 function openFile() {
@@ -198,7 +200,7 @@ ipcRenderer.on(crawlCommand.loginSuccess, (e, item) => {
         document.getElementById("crawl_login_error_text").style.display = 'block';
     } else if (item === -1) {
         let tempValue = document.getElementById("crawl_login_error_text").innerHTML;
-        if (tempValue == "Đang đăng nhập vui lòng đợi .... ||" || tempValue == null ) {
+        if (tempValue == "Đang đăng nhập vui lòng đợi .... ||" || tempValue == null) {
             document.getElementById("crawl_login_error_text").innerHTML = "Có lỗi khi đăng nhập,vui lòng thử lại";
             document.getElementById("crawl_login_error_text").style.color = 'red';
             document.getElementById("crawl_login_error_text").style.display = 'block';
@@ -258,7 +260,6 @@ function loginSuccess() {
         //hiện otp
         document.getElementById("crawl_otp").style.display = 'flex';
         document.getElementById("crawl_otp_error_text").style.display = 'none';
-
         document.getElementById("crawl_login_success").style.display = 'none';
     }, 850)
 }
@@ -267,12 +268,16 @@ ipcRenderer.on(crawlCommand.otp, (e, item) => {
     console.log("otp", item);
     hideProgressBarOTP();
     if (item === 1) {
-        otpSuccess();
+        if (currentOTPStatus == -100) {//nếu như currentOTPSTAUS đang không phải là -100
+            otpSuccess();
+        }
     } else if (item === 0) {
+        currentOTPStatus = item;
         document.getElementById("crawl_otp_error_text").innerHTML = "Mật khẩu OTP không đúng, vui lòng điền lại";
         document.getElementById("crawl_otp_error_text").style.color = 'red';
         document.getElementById("crawl_otp_error_text").style.display = 'block';
     } else if (item === -1) {
+        currentOTPStatus = item;
         document.getElementById("crawl_otp_error_text").innerHTML = "Có lỗi khi xác thực OTP, vui lòng thử lại";
         document.getElementById("crawl_otp_error_text").style.color = 'red';
         document.getElementById("crawl_otp_error_text").style.display = 'block';
@@ -282,6 +287,7 @@ ipcRenderer.on(crawlCommand.otp, (e, item) => {
         document.getElementById("crawl_otp_error_text").style.color = 'green';
         document.getElementById("crawl_otp_error_text").style.display = 'block';
     } else if (item == -2) {
+        currentOTPStatus = item;
         document.getElementById("crawl_otp_error_text").innerHTML = "Mật khẩu OTP đã hết hạn, bạn vui lòng đăng nhập lại ....";
         document.getElementById("crawl_otp_error_text").style.color = 'red';
         document.getElementById("crawl_otp_error_text").style.display = 'block';
@@ -293,6 +299,7 @@ ipcRenderer.on(crawlCommand.otp, (e, item) => {
 function otp() {
     document.getElementById("crawl_otp_error_text").style.display = 'none';
     showProgressBarOTP();
+    currentOTPStatus = -100;
     let otpText = document.getElementById("otpText").value; console.log("otp", otpText);
     if (!otpText) {
         document.getElementById("otpText").focus();
@@ -343,7 +350,7 @@ function otpTimeOut() {
         //hiện lại login
         document.getElementById("crawl_login").style.display = 'flex';
         document.getElementById("crawl_login_error_text").style.display = 'none';
-        
+
         document.getElementById("crawl_otp_success").style.display = 'none';
         document.getElementById("crawl_otp_validating_text").style.display = "none";
     }, 850)
@@ -356,7 +363,7 @@ function crawl() {
     document.getElementById("div_login_loading").style.display = 'block';
     document.getElementById("div_progress_bar").style.display = 'block';
 
-    document.getElementById("crawl_login_file_input").style.display = 'block';
+    //document.getElementById("crawl_login_file_input").style.display = 'flex';
 
     document.getElementById("success_text").style.display = 'block';
     document.getElementById("span_file_input_error").style.display = 'none';

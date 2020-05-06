@@ -204,7 +204,7 @@ input :hover {
     border: 1px solid #4e3861;
     word-break: break-all;
     border-radius: 4px;
-    display: none;
+    display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
@@ -213,10 +213,6 @@ input :hover {
 #crawl_login_file_input img {
     height: 35px;
     width: 35px;
-    position: absolute;
-    top:50%;
-    left:50%;
-    transform: translate(-50%,-50%);
     background-position: 100% 100%;
     background-repeat: no-repeat;
     background-size: 100% 100%;
