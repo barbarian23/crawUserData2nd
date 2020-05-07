@@ -200,7 +200,7 @@ ipcRenderer.on(crawlCommand.loginSuccess, (e, item) => {
         document.getElementById("crawl_login_error_text").style.display = 'block';
     } else if (item === -1) {
         let tempValue = document.getElementById("crawl_login_error_text").innerHTML;
-        if (tempValue == "Đang đăng nhập vui lòng đợi .... ||" || tempValue == null) {
+        if (tempValue == "Đang đăng nhập vui lòng đợi ...." || tempValue == null) {
             document.getElementById("crawl_login_error_text").innerHTML = "Có lỗi khi đăng nhập,vui lòng thử lại";
             document.getElementById("crawl_login_error_text").style.color = 'red';
             document.getElementById("crawl_login_error_text").style.display = 'block';

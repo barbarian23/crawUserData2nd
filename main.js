@@ -31,6 +31,7 @@ var wrongLogin = "Tài khoản không hợp lệ, vui lòng thử lại";
 var wrongOTP = "Mã OTP không hợp lệ, vui lòng thử lại";
 var wrongPhoneNumber = "Số không hợp lệ";
 var timoutOTP = "Phiên kiểm tra Otp hết hạn, hệ thống trở về trang đăng nhập.... ";
+var headeTitle = "header";
 
 var crawlUrl = "http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
 var threshHoldeCount = 5;
@@ -122,6 +123,19 @@ function createWindow() {
     mainWindow.on('closed', function () {
         mainWindow = null;
     })
+
+    //callback array
+    Object.defineProperty(currentData, "push", {
+        configurable : true,
+            enumerable : false,
+            writable : true,
+            value :async function(...args){
+                let result = Array.prototype.push.apply(this,args);
+                await mainWindow.webContents.send(crawlCommand.log, "push to array value "+result);
+                return result;
+            }
+    });
+
 }
 
 //hàm nothing
@@ -354,12 +368,14 @@ async function prepareExxcel(callback) {
     ];
 
     for (let i = 0; i < header.length; i++) {
-        writeToXcell(1, Number.parseInt(i) + 1, headeTitle + "-" + header[i]);
+        await mainWindow.webContents.send(crawlCommand.log, "vòng for ghi header  " + i + " title " + headeTitle + "-" + header[i]);
+        await writeToXcell(1, Number.parseInt(i) + 1, headeTitle + "-" + header[i]);
     }
 
+    await mainWindow.webContents.send(crawlCommand.log, "puppeteeer file ouput tên là  " + fileNamexlxs);
     ws.row(1).setHeight(defaultHeight);
     startStartIndex = 0;
-    mainWindow.webContents.send(crawlCommand.hideBTN, true);
+    await mainWindow.webContents.send(crawlCommand.hideBTN, true);
     callback();
 }
 
@@ -430,10 +446,10 @@ async function writeToXcell(x, y, title) {
     title += "";
 
     if (title.startsWith("header")) {
-        let ttitle = title.split("-")[1];
+        let tTitle = title.split("-")[1];
         title = JSON.stringify(title);
         //title.replace("\"/g","");
-        ws.cell(x, y).string(ttitle).style(xlStyleNone);
+        ws.cell(x, y).string(tTitle).style(xlStyleNone);
     } else {
         ws.cell(x, y).string(title).style(xlStyleSmall);
     }
@@ -493,12 +509,11 @@ function doLogin(_username, _password) {
 
         await mainWindow.webContents.send(crawlCommand.loginSuccess, 2);
         await mainWindow.webContents.send(crawlCommand.log, 'doLogin');
-
+        
         await pageLogin.goto(crawlUrl);//, { waitUntil: 'networkidle0' });
 
-
         pageLogin.setViewport({ width: 2600, height: 3000 });
-
+        
         //có dialog hiệnh lên
         //hầu hết các lỗi dialog, -> đóng trình duệt
         //dialog số không hợp lệ(sai định dang số, số quá ngắn, quá dài hoặc otp bị sai), không đóng google
@@ -643,16 +658,21 @@ async function doCrawl() {
     const start = async () => {
         await asyncForEach(inputPhoneNumberArray, startStartIndex, async (element, index) => {
 
-            await mainWindow.webContents.send(crawlCommand.log, 'crawl đến phần tử thứ  ' + index + " là số thuê bao " + inputPhoneNumberArray[index]);
+            await mainWindow.webContents.send(crawlCommand.log, 'crawl đến phần tử thứ  ' + index + " là số thuê bao " + inputPhoneNumberArray[index] + " = " + element);
 
             //nhập vào số điện thoại
-            await pageLogin.$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtThueBao', (el, value) => el.value = value, inputPhoneNumberArray[index]);
+            //await pageLogin.$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtThueBao', (el, value) => el.value = value, element);
+
+            await pageLogin.evaluate(({ element }) => {
+                document.getElementById("txtThueBao").value = element;
+                document.getElementById("btnSearch").click();
+            }, { element });
 
             //ngăn race condition
             //await Promise.all([pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess'), pageLogin.waitForNavigation({ waitUntil: 'networkidle0' })]);
 
             //bấm nút tìm
-            await pageLogin.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #btnSearch');
+            //await pageLogin.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #btnSearch');
 
             //đợi page load
             //cần xử lý sleep vài giây
