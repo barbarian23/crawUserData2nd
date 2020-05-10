@@ -28,10 +28,11 @@ var wrongPassword = "Mật khẩu phải ít nhất 8 ký tự, 1 ký tự hoa, 
 var lackPassword = "Mật khẩu";
 var wrongLogin = "Tài khoản không hợp lệ, vui lòng thử lại";
 
+var curentIndex = 0;
 var wrongOTP = "Mã OTP không hợp lệ, vui lòng thử lại";
 var wrongPhoneNumber = "Số không hợp lệ";
-var timoutOTP = "Phiên kiểm tra Otp hết hạn, hệ thống trở về trang đăng nhập.... ";
-var headeTitle = "header";
+var timoutOTP = "Phiên kiểm tra Otp hết hạn, hệ thống trở về trang đăng nhập....";
+var headeTitle = "header", errorTitle = "error";
 
 var crawlUrl = "http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
 var threshHoldeCount = 5;
@@ -51,9 +52,11 @@ const crawlCommand = {
     doCrawl: "crawl:do",
     runWithFile: "crawl:runwithfile",
     onRunning: "crawl:onrunning",
+    currentCrawl: "crawl:currentCrawl",
     loginSuccess: "crawl:login_success",
     log: "crawl:log",
-    signalWrite: "crawl:log", // cho phép write hoặc không, mắc định là cho phép, chỉ khi có dialog , 
+    notFoundNumber: "crawl:not_found_number",
+    signalWrite: "crawl:signalWrite", // cho phép write hoặc không, mắc định là cho phép, chỉ khi có dialog , 
     //số không hợp lệ, -1 
     // không tìm thấy số -2
     // hoặc sesion timeout , -3
@@ -62,7 +65,7 @@ const crawlCommand = {
 
 var canWrite = true;
 var mCheckTrue = "Mở", mCheckFalse = "Đóng";
-
+var xlStyleError;
 var currentData = [
     // "STT":"",
     // "Số thuê bao":"",
@@ -95,6 +98,10 @@ var currentData = [
     // "service":[]
 ]
 
+const detectChange = `document
+    .getElementById("lst-ib")
+    .addEventListener("change", () => console.timeStamp("input-change"));`;
+
 var page, pageLogin;
 var breakPerSerrvice = 6;//có 6 cột dịch vụ
 function createWindow() {
@@ -125,16 +132,16 @@ function createWindow() {
     })
 
     //callback array
-    Object.defineProperty(currentData, "push", {
-        configurable : true,
-            enumerable : false,
-            writable : true,
-            value :async function(...args){
-                let result = Array.prototype.push.apply(this,args);
-                await mainWindow.webContents.send(crawlCommand.log, "push to array value "+result);
-                return result;
-            }
-    });
+    // Object.defineProperty(currentData, "push", {
+    //     configurable: true,
+    //     enumerable: false,
+    //     writable: true,
+    //     value: async function (...args) {
+    //         let result = Array.prototype.push.apply(this, args);
+    //         await mainWindow.webContents.send(crawlCommand.log, "push to array value " + args[0]);
+    //         return result;
+    //     }
+    // });
 
 }
 
@@ -224,14 +231,14 @@ async function prepareExxcel(callback) {
     let cTimee = new Date();
 
     wb = new xl.Workbook();
-    ws = wb.addWorksheet(cTimee.getHours() + "-" + cTimee.getMinutes() + " " + cTimee.getDate() + "/" + (cTimee.getMonth() + 1) + "/" + cTimee.getFullYear());
+    ws = wb.addWorksheet("Tra cuu");
 
     ws.column(1).setWidth(5);//STT
     ws.column(2).setWidth(15);//Số thuê bao
     ws.column(3).setWidth(15);//MSIN
     ws.column(4).setWidth(15);//Loại thuê bao
     ws.column(5).setWidth(7);//Gọi đi
-    ws.column(6).setWidth(7);//Gọi đến
+    ws.column(6).setWidth(10);//Gọi đến
     ws.column(7).setWidth(11);//Loại SIM
     ws.column(8).setWidth(15);//Hạng hội viên
     ws.column(9).setWidth(5);//Tỉnh
@@ -288,6 +295,19 @@ async function prepareExxcel(callback) {
         }
     });
 
+    xlStyleError = wb.createStyle({
+        alignment: {
+            vertical: ['center'],
+            horizontal: ['center'],
+            wrapText: true,
+        },
+        font: {
+            name: 'Arial',
+            color: 'red',
+            size: 12,
+        }
+    });
+
     xlStyleBig = wb.createStyle({
         alignment: {
             vertical: ['center'],
@@ -296,7 +316,7 @@ async function prepareExxcel(callback) {
         },
         font: {
             name: 'Arial',
-            color: '#324b73',
+            color: '#4e3861',
             size: 12,
         }
     });
@@ -310,12 +330,12 @@ async function prepareExxcel(callback) {
         font: {
             bold: true,
             name: 'Arial',
-            color: '#324b73',
+            color: '#4e3861',
             size: 12,
         },
     });
 
-    fileNamexlxs = "(" + cTimee.getHours() + " Gio -" + cTimee.getMinutes() + " Phut Ngay " + cTimee.getDate() + " Thang " + (cTimee.getMonth() + 1) + " Nam " + cTimee.getFullYear() + ")   " + fileNametxt + ".xlsx";
+    fileNamexlxs = "(" + cTimee.getHours() + " Gio -" + cTimee.getMinutes() + " Phut Ngay " + cTimee.getDate() + " Thang " + (cTimee.getMonth() + 1) + " Nam " + cTimee.getFullYear() + ")   " + fileNametxt;
 
     let header = [
         "STT",
@@ -442,14 +462,17 @@ async function writeToFileXLSX() {
 
 async function writeToXcell(x, y, title) {
     //console.log("Ghi vao o ", x, y, "gia tri", title);
-    await mainWindow.webContents.send(crawlCommand.log, "Ghi vao o " + x + ":" + y + " gia tri " + title);
+    //await mainWindow.webContents.send(crawlCommand.log, "Ghi vao o " + x + ":" + y + " gia tri " + title);
     title += "";
 
-    if (title.startsWith("header")) {
+    if (title.startsWith(headeTitle)) {
         let tTitle = title.split("-")[1];
         title = JSON.stringify(title);
         //title.replace("\"/g","");
         ws.cell(x, y).string(tTitle).style(xlStyleNone);
+    } else if (title.startsWith(errorTitle)) {
+        let tTitle = title.split("-")[1];
+        ws.cell(x, y).string('0' + tTitle).style(xlStyleError);
     } else {
         ws.cell(x, y).string(title).style(xlStyleSmall);
     }
@@ -474,26 +497,32 @@ async function asyncReadFileExcel(array, callback) {
 async function asyncForEach(array, startIndex, callback) {
     let cIndex = 1;
     for (let index = startIndex; index < array.length; index++) {
+        try {
+            await mainWindow.webContents.send(crawlCommand.log, index + ' / ' + inputPhoneNumberArray.length);
 
-        await mainWindow.webContents.send(crawlCommand.log, index + ' / ' + inputPhoneNumberArray.length);
+            //đặt lại biến can write ặmc định là true
+            canWrite = true;
 
-        //đặt lại biến can write ặmc định là true
-        canWrite = true;
+            curentIndex = index;
 
-        await callback(array[index], index);
+            await mainWindow.webContents.send(crawlCommand.currentCrawl, (index + 1) + " " + inputPhoneNumberArray.length);
+            await callback(array[index], index);
+            await mainWindow.webContents.send(crawlCommand.log, ' craw xong ' + index + ' / ' + inputPhoneNumberArray.length);
+            await mainWindow.webContents.send(crawlCommand.onRunning, (index + 1) + " " + inputPhoneNumberArray.length);
 
-        await mainWindow.webContents.send(crawlCommand.running, (index + 1) + " " + inputPhoneNumberArray.length);
+            //sau ghi đủ số lượng threshHoldeCount sẽ ghi vào file excel
+            if (index % threshHoldeCount === 0 && index > 0) {
+                await mainWindow.webContents.send(crawlCommand.log, 'đã đạt đủ thresshold  ' + threshHoldeCount);
+                await writeToFileXLSX();
+            }
 
-        //sau ghi đủ số lượng threshHoldeCount sẽ ghi vào file excel
-        if (index % threshHoldeCount === 0 && index > 0) {
-            await mainWindow.webContents.send(crawlCommand.log, 'đax đạt đủ thresshold  ' + threshHoldeCount);
-            await writeToFileXLSX();
-        }
-
-        //crawl xong 1 số -> nghỉ await timer(delayInMilliseconds);
-        if (index < array.length - 1) {
-            await mainWindow.webContents.send(crawlCommand.log, 'delay   ' + delayInMilliseconds);
-            await timer(delayInMilliseconds);
+            //crawl xong 1 số -> nghỉ await timer(delayInMilliseconds);
+            if (index < array.length - 1) {
+                await mainWindow.webContents.send(crawlCommand.log, 'delay   ' + delayInMilliseconds);
+                await timer(delayInMilliseconds);
+            }
+        } catch (err) {
+            await mainWindow.webContents.send(crawlCommand.log, 'err in crawl   ' + err);
         }
     }
 }
@@ -507,13 +536,15 @@ function doLogin(_username, _password) {
         mainBrowser = browser;
         pageLogin = await browser.newPage();
 
+        //pageLogin.setDefaultTimeout(0);
+
         await mainWindow.webContents.send(crawlCommand.loginSuccess, 2);
         await mainWindow.webContents.send(crawlCommand.log, 'doLogin');
-        
+
         await pageLogin.goto(crawlUrl);//, { waitUntil: 'networkidle0' });
 
         pageLogin.setViewport({ width: 2600, height: 3000 });
-        
+
         //có dialog hiệnh lên
         //hầu hết các lỗi dialog, -> đóng trình duệt
         //dialog số không hợp lệ(sai định dang số, số quá ngắn, quá dài hoặc otp bị sai), không đóng google
@@ -557,7 +588,9 @@ function doLogin(_username, _password) {
             }
             //phần crawl dữ liệu, có dialog số điện thoại không hợp lệ(số dài hơn hoặc ngắn hơn quy định)
             else if (dialog.message() == wrongPhoneNumber) {
+                await mainWindow.webContents.send(crawlCommand.wrongPhoneNumber, inputPhoneNumberArray[curentIndex]);
                 await mainWindow.webContents.send(crawlCommand.signalWrite, -1);
+                await mainWindow.webContents.send(crawlCommand.log, 'wronggg ' + mssg);
                 canWrite = false;
             }
             else { // dialog có nội dung chưa biết
@@ -652,7 +685,7 @@ function doLogin(_username, _password) {
 }
 
 async function doCrawl() {
-
+    canWrite = true;
     //await page.goto(crawlUrl);
     await mainWindow.webContents.send(crawlCommand.log, 'bắt đầu crawl ');
     const start = async () => {
@@ -661,128 +694,275 @@ async function doCrawl() {
             await mainWindow.webContents.send(crawlCommand.log, 'crawl đến phần tử thứ  ' + index + " là số thuê bao " + inputPhoneNumberArray[index] + " = " + element);
 
             //nhập vào số điện thoại
-            //await pageLogin.$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtThueBao', (el, value) => el.value = value, element);
+            await pageLogin.$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtThueBao', (el, value) => el.value = value, element);
 
-            await pageLogin.evaluate(({ element }) => {
-                document.getElementById("txtThueBao").value = element;
-                document.getElementById("btnSearch").click();
-            }, { element });
+            // await pageLogin.evaluate(({ element }) => {
+            //     document.getElementById("txtThueBao").value = element;
+            //     document.getElementById("btnSearch").click();
+            // }, { element });
 
             //ngăn race condition
-            //await Promise.all([pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess'), pageLogin.waitForNavigation({ waitUntil: 'networkidle0' })]);
+            //await Promise.all([pageLogin.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #btnSearch'), pageLogin.waitForNavigation({ waitUntil: 'networkidle0' })]);
 
             //bấm nút tìm
-            //await pageLogin.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #btnSearch');
+            await pageLogin.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #btnSearch');
+
 
             //đợi page load
             //cần xử lý sleep vài giây
-            await timer(1100);
 
-            //làm mới mảng curent Data
-            currentData.length = 0;
+            //wwait for value change
+            //await page.waitForFunction('document.getElementById("txtMSIN").value != "No Value"');
 
-            //1
-            currentData.push(index + 1);// sso thứ tự
-            //2
-            currentData.push(inputPhoneNumberArray[index]);//"Số thuê bao",
-            //3
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtMSIN').getProperty('innerHTML')).jsonValue());//"MSIN",
-            //4
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtLoaiTB').getProperty('innerHTML')).jsonValue());//"Loại thuê bao",
-            //5
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #chkGoiDi').getProperty('innerHTML')).jsonValue() === true ? mCheckTrue : mCheckFalse);//"Gọi đi",
-            //6
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #chkGoiDen').getProperty('innerHTML')).jsonValue() === true ? mCheckTrue : mCheckFalse);//"Gọi đến",
-            //7
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtSimType').getProperty('innerHTML')).jsonValue());//"Loại SIM",
-            //8
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtHangHoiVien').getProperty('innerHTML')).jsonValue());//"Hạng hội viên",
-            //9
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtTinh').getProperty('innerHTML')).jsonValue());//"Tỉnh",
-            //10
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtNgayKH').getProperty('innerHTML')).jsonValue());//"Ngày KH",
-            //11
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtMaKH').getProperty('innerHTML')).jsonValue());//"Mã KH",
-            //12
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtMaCQ').getProperty('innerHTML')).jsonValue());//"Mã CQ",
-            //13
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtTB').getProperty('innerHTML')).jsonValue());//"Tên thuê bao",
-            //14
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtNgaySinh').getProperty('innerHTML')).jsonValue());//"Ngày sinh",
-            //15
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtSoGT').getProperty('innerHTML')).jsonValue());//"Số GT",
-            //16
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtNoiCap').getProperty('innerHTML')).jsonValue());//"Ngày cấp",
-            let pinpuk = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtPIN') + "/"
-                + await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtPUK');
-            //17
-            currentData.push(pinpuk);//"Số PIN/PUK",
+            //dialog không tìm thấy thuê bao hiện lên
+            let dialogNotFound = await pageLogin.$("body .panel .messager-body");
 
-            let pinpuk2 = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtPIN2') + "/"
-                + await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtPUK2');
-            //18
-            currentData.push(pinpuk2);//"Số PIN2/PUK2",
-            //19
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtDoiTuong').getProperty('innerHTML')).jsonValue());//"Đối tượng",
-            //20
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtDiaChiChungTu').getProperty('innerHTML')).jsonValue());//"Địa chỉ chứng từ",
-            //21
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtDiaChiThanhToan').getProperty('innerHTML')).jsonValue());//"Địa chỉ thanh toán",
-            //22
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtDiaChiThuongTru').getProperty('innerHTML')).jsonValue());//"Địa chỉ thường trú",
-            //23
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtTKC').getProperty('innerHTML')).jsonValue());//"Tài khoản chính",
-            //24
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtHSD').getProperty('innerHTML')).jsonValue());//"Hạn sử dụng",
-            //25
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtKhuyenMai').getProperty('innerHTML')).jsonValue());//"Thuê bao trả trước được tham gia khuyến mại",
-            //26
-            currentData.push(await (await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor tbl-cus #txtKhuyenNghi').getProperty('innerHTML')).jsonValue());//"Gói cước trả trước ưu tiên mời KH đăng ký",
+            if (dialogNotFound != undefined) {
+                await mainWindow.webContents.send(crawlCommand.notFoundNumber, inputPhoneNumberArray[index]);
+                await writeToXcell(index + rowSpacing, 1, errorTitle + "-" + index + 1);//số thứ tự
+                await writeToXcell(index + rowSpacing, 2, errorTitle + "-" + inputPhoneNumberArray[index] + " không tìm thấy");
 
-            //bấm vào 3g tab
-            await pageLogin.$x("//span[contains(., 'Lịch sử 3G')]");
-
-            //sleep đi 1 giây
-            await timer(1100);
-
-            let dataFromTable = await pageLogin.$$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor .box5 #tabContent table tr td', tableData => tableData.map((td) => {
-                return td.innerHTML;
-            }));
-
-            await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g " + dataFromTable);
-
-            if (canWrite) {
-                //phần ghi ra file excel
-                //đến phẩn tử 26 là hết phần thông tin khách
-                let outerIndex = index;
-                for (let index = 0; index < 25; index++) {
-                    await writeToXcell(outerIndex + rowSpacing, index + 1, currentData[index]);
-                }
+                //bấm vào đóng
+                await pageLogin.click('body .panel .dialog-button a');
+            } else {
 
 
-                let currentCollumn = 26;
-                for (let index = 0; index < dataFromTable.length; index++) {
-                    //dataFromTable
-                    if (index % breakPerSerrvice == 0) {
-                        continue;
-                    } else {
-                        await writeToXcell(index + rowSpacing, currentCollumn + index, dataFromTable);
+                //làm mới mảng curent Data
+                currentData.length = 0;
+
+                //1
+                currentData.push(index + 1);// số thứ tự
+
+                //2
+                currentData.push(inputPhoneNumberArray[index]);//"Số thuê bao",
+
+                // await timer(5000);
+                try {
+                    let domElement = "", value = "", valueAlt = "";
+
+                    //3
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtMSIN");
+                    value = await (await domElement.getProperty('value')).jsonValue();//"MSIN",
+                    await mainWindow.webContents.send(crawlCommand.log, 'MSIN  ' + value);
+                    await currentData.push(value);
+
+                    //4
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtLoaiTB");
+                    value = await (await domElement.getProperty('value')).jsonValue();//"Loại thuê bao",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Loại thuê bao  ' + value);
+                    await currentData.push(value);
+
+                    //5
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #chkGoiDi");
+                    value = await (await domElement.getProperty('checked')).jsonValue() === true ? mCheckTrue : mCheckFalse;//"Gọi đi",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Gọi đi  ' + value);
+                    await currentData.push(value);
+
+                    //6
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #chkGoiDen");
+                    value = await (await domElement.getProperty('checked')).jsonValue() === true ? mCheckTrue : mCheckFalse;//"Gọi đến",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Gọi đến  ' + value);
+                    await currentData.push(value);
+
+                    //7
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtSimType");
+                    value = await (await domElement.getProperty('value')).jsonValue();//"Loại SIM ",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Loại SIM  ' + value);
+                    await currentData.push(value);
+
+                    //8
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtHangHoiVien");
+                    value = await (await domElement.getProperty('value')).jsonValue();//"Hạng hội viên",
+                    await mainWindow.webContents.send(crawlCommand.log, ' ' + value);
+                    await currentData.push(value);
+
+                    //9
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtTinh");
+                    value = await (await domElement.getProperty('value')).jsonValue();//"Hạng hội viên",
+                    await mainWindow.webContents.send(crawlCommand.log, 'txtTinh  ' + value);
+                    await currentData.push(value);
+
+                    //10
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtNgayKH");
+                    value = await (await domElement.getProperty('value')).jsonValue();//"Ngày KH",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Ngày KH  ' + value);
+                    await currentData.push(value);
+
+                    //11
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtMaKH");
+                    value = await (await domElement.getProperty('value')).jsonValue();//"Mã KH",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Mã KH  ' + value);
+                    await currentData.push(value);
+
+                    //12
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtMaCQ");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Mã CQ"",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Mã CQ ' + value);
+                    await currentData.push(value);
+
+                    //13
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtTB");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Tên thuê bao"",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Tên thuê bao  ' + value);
+                    await currentData.push(value);
+
+
+                    //14
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtNgaySinh");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Ngày sinh"",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Ngày sinh  ' + value);
+                    await currentData.push(value);
+
+                    //15
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtSoGT");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Số GT"",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Số GT  ' + value);
+                    await currentData.push(value);
+
+                    //16
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtNoiCap");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Ngày cấp"",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Ngày cấp  ' + value);
+                    await currentData.push(value);
+
+                    //17
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtPIN");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""PIN"",
+
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtPUK");
+                    valueAlt = await (await domElement.getProperty('value')).jsonValue();//""PUK"",
+
+                    await mainWindow.webContents.send(crawlCommand.log, 'Số PIN/PUK  ' + value + "/" + valueAlt);
+                    await currentData.push(value + "/" + valueAlt);//"Số PIN/PUK",
+
+                    //18
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtPIN2");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""PIN2"",
+
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtPUK2");
+                    valueAlt = await (await domElement.getProperty('value')).jsonValue();//""PUK2"",
+
+                    await mainWindow.webContents.send(crawlCommand.log, 'Số PIN2/PUK2  ' + value + "/" + valueAlt);
+                    await currentData.push(value + "/" + valueAlt);//"Số PIN2/PUK2",
+
+                    //19
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtDoiTuong");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Đối tượng"",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Đối tượng  ' + value);
+                    await currentData.push(value);
+
+                    //20
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtDiaChiChungTu");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Địa chỉ chứng từ"",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Địa chỉ chứng từ ' + value);
+                    await currentData.push(value);
+
+                    //21
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtDiaChiThanhToan");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Địa chỉ thanh toán",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Địa chỉ thanh toán' + value);
+                    await currentData.push(value);
+
+                    //22
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtDiaChiThuongTru");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Địa chỉ thường trú",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Địa chỉ thường trú' + value);
+                    await currentData.push(value);
+
+                    //23
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtTKC");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Tài khoản chính",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Tài khoản chính' + value);
+                    await currentData.push(value);
+
+                    //24
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtHSD");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Hạn sử dụng",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Hạn sử dụng' + value);
+                    await currentData.push(value);
+
+                    //25
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtKhuyenMai");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Thuê bao trả trước được tham gia khuyến mại",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Thuê bao trả trước được tham gia khuyến mại' + value);
+                    await currentData.push(value);
+
+                    //26
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtKhuyenNghi");
+                    value = await (await domElement.getProperty('value')).jsonValue();//""Gói cước trả trước ưu tiên mời KH đăng ký",
+                    await mainWindow.webContents.send(crawlCommand.log, 'Gói cước trả trước ưu tiên mời KH đăng ký' + value);
+                    await currentData.push(value);
+
+                    //bấm vào 3g tab
+                    await mainWindow.webContents.send(crawlCommand.log, 'find 3G tab ');
+                    let [span3G] = await pageLogin.$x("//span[contains(., '3G')]");
+
+                    if (span3G) {
+                        await mainWindow.webContents.send(crawlCommand.log, 'click on 3G tab ' + span3G);
+                        await span3G.click();
                     }
+
+                    //sleep đi 1 giây
+                    await timer(2100);
+
+                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td");
+                    let dataFromTable = null;
+                    if (domElement != undefined) {
+                        dataFromTable = await pageLogin.$$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td', tableData => tableData.map((td) => {
+                            return td.innerHTML;
+                        }));
+                        await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g ");
+                        await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g LENGTH " + dataFromTable.length);
+                    }
+                    await mainWindow.webContents.send(crawlCommand.log, "dịch vụ 3g "+domElement);
+                    if (canWrite) {
+                        //phần ghi ra file excel
+                        //đến phẩn tử 26 là hết phần thông tin khách
+                        await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin khách " + currentData);
+                        let outerIndex = index;
+                        for (let index = 0; index < 25; index++) {
+                            await writeToXcell(outerIndex + rowSpacing, index + 1, currentData[index]);
+                        }
+
+                        if (dataFromTable != undefined) {
+                            let currentCollumn = 27;
+                            let limitRange = dataFromTable.length > 18 ? 18 : dataFromTable.length; // do chỉ có 3 dịch vụ => 3 * 6 = 18
+                            await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin dịch vụ " + dataFromTable);
+                            for (let index = 0; index < limitRange; index++) {
+                                //dataFromTable
+                                if (index % breakPerSerrvice == 0) {
+                                    continue;
+                                } else {
+                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTable[index]);
+                                    currentCollumn++;
+                                }
+                            }
+                        }
+                    } else {
+                        await writeToXcell(index + rowSpacing, 1, errorTitle + "-" + index + 1);//số thứ tự
+                        await writeToXcell(index + rowSpacing, 2, errorTitle + "-" + inputPhoneNumberArray[index] + " bị lỗi, không tra cứu");
+                    }
+
+                }
+                catch (err) {
+                    await mainWindow.webContents.send(crawlCommand.log, 'lỗi  ' + err);
                 }
             }
+
         });
 
 
-
-        console.log("end");
+        await mainWindow.webContents.send(crawlCommand.log, 'end  ');
+        await mainWindow.webContents.send(crawlCommand.log, 'write to excel  ');
         //lần chạy cuối cùng
         await writeToFileXLSX();
 
-        await browser.close();
+        //không được đóng
+        // await mainBrowser.close();
 
         await mainWindow.webContents.send(crawlCommand.result, true);
 
-        concurentPup = null;
+        //concurentPup = null;
         //crawling = false;
     };
 

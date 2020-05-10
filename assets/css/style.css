@@ -284,6 +284,17 @@ input :hover {
     color: red;
 }
 
+.crawl-login-loading{
+    margin-top: 30px;
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #4e3861; /* purple */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
 /* animation */
 
 @keyframes spin {
