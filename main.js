@@ -34,6 +34,8 @@ var wrongPhoneNumber = "Số không hợp lệ";
 var timoutOTP = "Phiên kiểm tra Otp hết hạn, hệ thống trở về trang đăng nhập....";
 var headeTitle = "header", errorTitle = "error";
 
+const gotTheLock = app.requestSingleInstanceLock(); //singleton
+
 var crawlUrl = "http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
 var threshHoldeCount = 5;
 const crawlCommand = {
@@ -174,6 +176,33 @@ const mainMenuTemplate = [
         ]
     }
 ];
+
+if (!gotTheLock) {
+    app.quit()
+} else {
+    app.on('second-instance', async (event, commandLine, workingDirectory) => {
+        // Someone tried to run a second instance, we should focus our window.
+        if (mainWindow) {
+            await mainWindow.webContents.send(crawlCommand.log, "log second-instance");
+
+            dialog.showMessageBox(mainWindow, {
+                title: 'Không nên chạy nhiều cửa sổ',
+                buttons: ['Đóng'],
+                type: 'warning',
+                message: 'Để tránh trang web từ chối truy cập nhiều, chỉ nên chạy 1 cửa sổ!',
+            });
+
+            if (mainWindow.isMinimized()) {
+                myWindow.restore()
+            }
+            mainWindow.focus()
+        }
+    })
+
+    // Create myWindow, load the rest of the app, etc...
+    //app.whenReady().then(createWindow);
+    app.on('ready', createWindow);
+}
 
 app.on('ready', createWindow);
 
@@ -895,26 +924,29 @@ async function doCrawl() {
 
                     //bấm vào 3g tab
                     await mainWindow.webContents.send(crawlCommand.log, 'find 3G tab ');
-                    let [span3G] = await pageLogin.$x("//span[contains(., '3G')]");
+                    // let [span3G] = await pageLogin.$x("//span[contains(., '3G')]");
 
-                    if (span3G) {
-                        await mainWindow.webContents.send(crawlCommand.log, 'click on 3G tab ' + span3G);
-                        await span3G.click();
-                    }
+                    // if (span3G) {
+                    //     await mainWindow.webContents.send(crawlCommand.log, 'click on 3G tab ' + span3G);
+                    //     await span3G.click();
+                    // }
+
+                    await mainWindow.webContents.send(crawlCommand.log, 'click on 3G tab ');
+                    await page.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(2)');
 
                     //sleep đi 1 giây
-                    await timer(2100);
+                    await timer(1100);
 
-                    domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td");
-                    let dataFromTable = null;
-                    if (domElement != undefined) {
-                        dataFromTable = await pageLogin.$$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td', tableData => tableData.map((td) => {
-                            return td.innerHTML;
-                        }));
-                        await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g ");
-                        await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g LENGTH " + dataFromTable.length);
-                    }
-                    await mainWindow.webContents.send(crawlCommand.log, "dịch vụ 3g "+domElement);
+                    // domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td");
+                    // let dataFromTable = null;
+                    // if (domElement != undefined) {
+                    let dataFromTable = await pageLogin.$$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td', tableData => tableData.map((td) => {
+                        return td.innerHTML;
+                    }));
+                    await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g ");
+                    await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g LENGTH " + dataFromTable.length);
+                    //}
+                    await mainWindow.webContents.send(crawlCommand.log, "dịch vụ 3g " + domElement);
                     if (canWrite) {
                         //phần ghi ra file excel
                         //đến phẩn tử 26 là hết phần thông tin khách
