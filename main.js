@@ -37,7 +37,7 @@ var headeTitle = "header", errorTitle = "error";
 const gotTheLock = app.requestSingleInstanceLock(); //singleton
 
 var crawlUrl = "http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
-var threshHoldeCount = 5;
+var threshHoldeCount = 7;
 const crawlCommand = {
     login: "crawl:login",
     otp: "crawl:otp",
@@ -114,7 +114,7 @@ function createWindow() {
     });
 
     //dev tool
-    mainWindow.webContents.openDevTools();
+   // mainWindow.webContents.openDevTools();
 
     mainWindow.on('crashed', () => {
         win.destroy();
@@ -204,7 +204,7 @@ if (!gotTheLock) {
     app.on('ready', createWindow);
 }
 
-app.on('ready', createWindow);
+//app.on('ready', createWindow);
 
 app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') {
@@ -269,8 +269,8 @@ async function prepareExxcel(callback) {
     ws.column(5).setWidth(7);//Gọi đi
     ws.column(6).setWidth(10);//Gọi đến
     ws.column(7).setWidth(11);//Loại SIM
-    ws.column(8).setWidth(15);//Hạng hội viên
-    ws.column(9).setWidth(5);//Tỉnh
+    ws.column(8).setWidth(25);//Hạng hội viên
+    ws.column(9).setWidth(10);//Tỉnh
     ws.column(10).setWidth(15);//Ngày KH
     ws.column(11).setWidth(10);//Mã KH
     ws.column(12).setWidth(10);//Mã CQ
@@ -561,7 +561,7 @@ async function asyncForEach(array, startIndex, callback) {
 function doLogin(_username, _password) {
     concurentLogin = null;
     //đang login
-    concurentLogin = puppeteer.launch({ headless: false, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
+    concurentLogin = puppeteer.launch({ headless: true, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
         mainBrowser = browser;
         pageLogin = await browser.newPage();
 
@@ -748,7 +748,7 @@ async function doCrawl() {
 
             if (dialogNotFound != undefined) {
                 await mainWindow.webContents.send(crawlCommand.notFoundNumber, inputPhoneNumberArray[index]);
-                await writeToXcell(index + rowSpacing, 1, errorTitle + "-" + index + 1);//số thứ tự
+                await writeToXcell(index + rowSpacing, 1, errorTitle + "-" + (index + 1));//số thứ tự
                 await writeToXcell(index + rowSpacing, 2, errorTitle + "-" + inputPhoneNumberArray[index] + " không tìm thấy");
 
                 //bấm vào đóng
@@ -932,15 +932,47 @@ async function doCrawl() {
                     // }
 
                     await mainWindow.webContents.send(crawlCommand.log, 'click on 3G tab ');
-                    await page.click('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(2)');
 
+                    let aList = await pageLogin.$$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab a", aData => aData.map((td) => {
+                        return td.innerHTML;
+                    }));
+
+                    let _3gPosstiton = 0;
+                    await mainWindow.webContents.send(crawlCommand.log, 'list a list  ' + aList);
+
+                    let listInner = [];
+
+                    console.log('list a list  ' + aList);
+                    for (let i = 0; i < aList.length; i++) {
+                        try {
+                            listInner.push(await (await aList[i].getProperty('innerHTML')).jsonValue());
+                        } catch (err) {
+                            console.log('err map ' + err);
+                        }
+                    }
+
+
+                    listInner.map((item, index) => {
+                        if (item.includes("3G")) {
+                            _3gPosstiton = index;
+                        }
+                    });
+
+
+
+                    await mainWindow.webContents.send(crawlCommand.log, domElement + ' tabtab a ' + domElement.length + " 3G in position " + _3gPosstiton);
+
+                    _3gPosstiton++;// puppterteeer không bắt đầu từ 0 nên + thêm 1
+
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(" + _3gPosstiton + ")");
+                    //dịch 3G ở ô thứ 2
                     //sleep đi 1 giây
                     await timer(1100);
 
                     // domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td");
                     // let dataFromTable = null;
                     // if (domElement != undefined) {
-                    let dataFromTable = await pageLogin.$$eval('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td', tableData => tableData.map((td) => {
+                    let dataFromTable = await pageLogin.$$eval("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td", tableData => tableData.map((td) => {
                         return td.innerHTML;
                     }));
                     await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g ");
