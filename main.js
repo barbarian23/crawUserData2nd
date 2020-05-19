@@ -34,6 +34,8 @@ var wrongPhoneNumber = "Số không hợp lệ";
 var timoutOTP = "Phiên kiểm tra Otp hết hạn, hệ thống trở về trang đăng nhập....";
 var headeTitle = "header", errorTitle = "error";
 
+let sleepBetwwenClick = 1500;
+
 const gotTheLock = app.requestSingleInstanceLock(); //singleton
 
 var crawlUrl = "http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
@@ -105,7 +107,7 @@ const detectChange = `document
     .addEventListener("change", () => console.timeStamp("input-change"));`;
 
 var page, pageLogin;
-var breakPerSerrvice = 6;//có 6 cột dịch vụ
+var breakPerSerrvice = 6;//có 6,5 cột dịch vụ
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 800, height: 600, webPreferences: {
@@ -114,7 +116,7 @@ function createWindow() {
     });
 
     //dev tool
-   // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 
     mainWindow.on('crashed', () => {
         win.destroy();
@@ -311,6 +313,41 @@ async function prepareExxcel(callback) {
     ws.column(40).setWidth(25);//Ngày kết thúc dịch vụ 3
     ws.column(41).setWidth(10);//Gia hạn 3
 
+    //Dịch vụ GPRS
+    ws.column(42).setWidth(10);//"Mã dịch vụ dvgprs",
+    ws.column(43).setWidth(30);//"Ngày thực hiện dịch vụ dvgprs",
+    ws.column(44).setWidth(10);//"Thao tác dvgprs",
+    ws.column(45).setWidth(25);//"Ghi chú dvgprs",
+    ws.column(46).setWidth(15);//"Người dùng dvgprs",
+
+    //Dịch vụ IC
+    ws.column(47).setWidth(10);//"Mã dịch vụ dvic",
+    ws.column(48).setWidth(30);//"Ngày thực hiện dịch vụ dvic",
+    ws.column(49).setWidth(10);//"Thao tác dvic",
+    ws.column(50).setWidth(25);//"Ghi chú dvic",
+    ws.column(51).setWidth(15);//"Người dùng dvic",
+
+    //Dịch vụ OC
+    ws.column(52).setWidth(10);//"Mã dịch vụ dvoc",
+    ws.column(53).setWidth(30);//"Ngày thực hiện dịch vụ dvoc",
+    ws.column(54).setWidth(10);//"Thao tác dvoc",
+    ws.column(55).setWidth(25);//"Ghi chú dvoc",
+    ws.column(56).setWidth(15);//"Người dùng dvoc",
+
+    //lịch sử nạp thẻ 1
+    ws.column(57).setWidth(15);//"Mệnh giá 1",
+    ws.column(58).setWidth(30);//"Ngày nạp 1",
+    ws.column(59).setWidth(15);//"Phương thức nạp 1",
+    ws.column(60).setWidth(15);//"TK trước khi nạp 1",
+    ws.column(61).setWidth(15);//"TK sau khi nạp 1",
+
+    //lịch sử nạp thẻ 2
+    ws.column(62).setWidth(15);//"Mệnh giá 2",
+    ws.column(63).setWidth(15);// "Ngày nạp 2",
+    ws.column(64).setWidth(15);//"Phương thức nạp 2",
+    ws.column(65).setWidth(15);//"TK trước khi nạp 2",
+    ws.column(66).setWidth(15);//"TK sau khi nạp 2",
+
     xlStyleSmall = wb.createStyle({
         alignment: {
             vertical: ['center'],
@@ -414,6 +451,41 @@ async function prepareExxcel(callback) {
         "Ngày bắt đầu dịch vụ 3",
         "Ngày kết thúc dịch vụ 3",
         "Gia hạn 3",
+
+        //Dịch vụ GPRS
+        "Mã dịch vụ dvgprs",
+        "Ngày thực hiện dịch vụ dvgprs",
+        "Thao tác dvgprs",
+        "Ghi chú dvgprs",
+        "Người dùng dvgprs",
+
+        //Dịch vụ IC
+        "Mã dịch vụ dvic",
+        "Ngày thực hiện dịch vụ dvic",
+        "Thao tác dvic",
+        "Ghi chú dvic",
+        "Người dùng dvic",
+
+        //Dịch vụ OC
+        "Mã dịch vụ dvoc",
+        "Ngày thực hiện dịch vụ dvoc",
+        "Thao tác dvoc",
+        "Ghi chú dvoc",
+        "Người dùng dvoc",
+
+        //lịch sử nạp thẻ 1
+        "Mệnh giá 1",
+        "Ngày nạp 1",
+        "Phương thức nạp 1",
+        "TK trước khi nạp 1",
+        "TK sau khi nạp 1",
+
+        //lịch sử nạp thẻ 2
+        "Mệnh giá 2",
+        "Ngày nạp 2",
+        "Phương thức nạp 2",
+        "TK trước khi nạp 2",
+        "TK sau khi nạp 2",
     ];
 
     for (let i = 0; i < header.length; i++) {
@@ -561,7 +633,7 @@ async function asyncForEach(array, startIndex, callback) {
 function doLogin(_username, _password) {
     concurentLogin = null;
     //đang login
-    concurentLogin = puppeteer.launch({ headless: true, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
+    concurentLogin = puppeteer.launch({ headless: false, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
         mainBrowser = browser;
         pageLogin = await browser.newPage();
 
@@ -572,7 +644,7 @@ function doLogin(_username, _password) {
 
         await pageLogin.goto(crawlUrl);//, { waitUntil: 'networkidle0' });
 
-        pageLogin.setViewport({ width: 2600, height: 3000 });
+        pageLogin.setViewport({ width: 2600, height: 3800 });
 
         //có dialog hiệnh lên
         //hầu hết các lỗi dialog, -> đóng trình duệt
@@ -747,7 +819,7 @@ async function doCrawl() {
             let dialogNotFound = await pageLogin.$("body .panel .messager-body");
 
             if (dialogNotFound != undefined) {
-                await mainWindow.webContents.send(crawlCommand.notFoundNumber, inputPhoneNumberArray[index]);
+                await mainWindow.webContents.send(crawlCommand.notFoundNumber, "không tìm thấy số" + inputPhoneNumberArray[index]);
                 await writeToXcell(index + rowSpacing, 1, errorTitle + "-" + (index + 1));//số thứ tự
                 await writeToXcell(index + rowSpacing, 2, errorTitle + "-" + inputPhoneNumberArray[index] + " không tìm thấy");
 
@@ -923,62 +995,68 @@ async function doCrawl() {
                     await currentData.push(value);
 
                     //bấm vào 3g tab
-                    await mainWindow.webContents.send(crawlCommand.log, 'find 3G tab ');
-                    // let [span3G] = await pageLogin.$x("//span[contains(., '3G')]");
-
-                    // if (span3G) {
-                    //     await mainWindow.webContents.send(crawlCommand.log, 'click on 3G tab ' + span3G);
-                    //     await span3G.click();
-                    // }
-
                     await mainWindow.webContents.send(crawlCommand.log, 'click on 3G tab ');
+                    //3g tab tại tab thứ 2
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(1) span");
+                    await timer(sleepBetwwenClick);
 
-                    let aList = await pageLogin.$$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab a", aData => aData.map((td) => {
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(2) span");
+                    await timer(sleepBetwwenClick);
+
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(3) span");
+                    await timer(sleepBetwwenClick);
+
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(2) span");
+                    await timer(sleepBetwwenClick);
+
+                    let dataFromTable3G = await pageLogin.$$eval("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td", tableData => tableData.map((td) => {
                         return td.innerHTML;
                     }));
 
-                    let _3gPosstiton = 0;
-                    await mainWindow.webContents.send(crawlCommand.log, 'list a list  ' + aList);
+                    await mainWindow.webContents.send(crawlCommand.log, "dịch vụ 3g " + dataFromTable3G);
 
-                    let listInner = [];
+                    //bấm vào lịch sử thuê bao
+                    await mainWindow.webContents.send(crawlCommand.log, 'click lịch sử thuê bao ');
+                    //lịch sử thêu bao tab tại tab thứ 1
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(1) span");
+                    await timer(sleepBetwwenClick);
 
-                    console.log('list a list  ' + aList);
-                    for (let i = 0; i < aList.length; i++) {
-                        try {
-                            listInner.push(await (await aList[i].getProperty('innerHTML')).jsonValue());
-                        } catch (err) {
-                            console.log('err map ' + err);
-                        }
-                    }
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(2) span");
+                    await timer(sleepBetwwenClick);
 
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(3) span");
+                    await timer(sleepBetwwenClick);
 
-                    listInner.map((item, index) => {
-                        if (item.includes("3G")) {
-                            _3gPosstiton = index;
-                        }
-                    });
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(1) span");
+                    await timer(sleepBetwwenClick);
 
-
-
-                    await mainWindow.webContents.send(crawlCommand.log, domElement + ' tabtab a ' + domElement.length + " 3G in position " + _3gPosstiton);
-
-                    _3gPosstiton++;// puppterteeer không bắt đầu từ 0 nên + thêm 1
-
-                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(" + _3gPosstiton + ")");
-                    //dịch 3G ở ô thứ 2
-                    //sleep đi 1 giây
-                    await timer(1100);
-
-                    // domElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td");
-                    // let dataFromTable = null;
-                    // if (domElement != undefined) {
-                    let dataFromTable = await pageLogin.$$eval("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td", tableData => tableData.map((td) => {
+                    let dataFromTableLSTB = await pageLogin.$$eval("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td", tableData => tableData.map((td) => {
                         return td.innerHTML;
                     }));
-                    await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g ");
-                    await mainWindow.webContents.send(crawlCommand.log, "đọc từ dịch vụ 3g LENGTH " + dataFromTable.length);
-                    //}
-                    await mainWindow.webContents.send(crawlCommand.log, "dịch vụ 3g " + domElement);
+
+                    await mainWindow.webContents.send(crawlCommand.log, "lịch sử thuê bao " + dataFromTableLSTB);
+
+                    //bấm vào lịch sử nạp thẻ
+                    await mainWindow.webContents.send(crawlCommand.log, 'click lịch sử nạp thẻ ');
+                    //lịch sử thêu bao tab tại tab thứ 3
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(1) span");
+                    await timer(sleepBetwwenClick);
+
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(2) span");
+                    await timer(sleepBetwwenClick);
+
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(3) span");
+                    await timer(sleepBetwwenClick);
+
+                    await pageLogin.click("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabtab :nth-child(3) span");
+                    await timer(sleepBetwwenClick);
+
+                    let dataFromTableLSNT = await pageLogin.$$eval("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox .myTbl tr td", tableData => tableData.map((td) => {
+                        return td.innerHTML;
+                    }));
+
+                    await mainWindow.webContents.send(crawlCommand.log, "lịch sử nạp thẻ " + dataFromTableLSNT);
+
                     if (canWrite) {
                         //phần ghi ra file excel
                         //đến phẩn tử 26 là hết phần thông tin khách
@@ -988,20 +1066,103 @@ async function doCrawl() {
                             await writeToXcell(outerIndex + rowSpacing, index + 1, currentData[index]);
                         }
 
-                        if (dataFromTable != undefined) {
+                        //3g
+                        if (dataFromTable3G != undefined) {
                             let currentCollumn = 27;
-                            let limitRange = dataFromTable.length > 18 ? 18 : dataFromTable.length; // do chỉ có 3 dịch vụ => 3 * 6 = 18
-                            await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin dịch vụ " + dataFromTable);
+                            breakPerSerrvice = 6;
+                            let limitRange = dataFromTable3G.length > 18 ? 18 : dataFromTable3G.length; // do chỉ có 3 dịch vụ => 3 * 6 = 18
+                            await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin dịch vụ ");
                             for (let index = 0; index < limitRange; index++) {
-                                //dataFromTable
+                                //dataFromTable3G
                                 if (index % breakPerSerrvice == 0) {
                                     continue;
                                 } else {
-                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTable[index]);
+                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTable3G[index]);
                                     currentCollumn++;
                                 }
                             }
                         }
+
+                        //lịch sử thuê bao
+                        if (dataFromTableLSTB != undefined) {
+                            let currentCollumn = 42;
+                            breakPerSerrvice = 5;
+                            let startIndex = -1;
+                            await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin lịch sử thuê bao");
+                            //tìm ra vị trí đầu tiên là dịch vụ gprs
+                            dataFromTableLSTB.some((index, item) => {
+                                if (item === "GPRS") {
+                                    startIndex = index;
+                                    return true;
+                                }
+                            });
+
+                            if (startIndex != -1) {//tìm thấy
+                                for (let index = startIndex; index < startIndex + 5; index++) {
+                                    //dataFromTableLSTB
+                                    await mainWindow.webContents.send(crawlCommand.log, "ghi vào dịch vụ GPRS " + dataFromTableLSTB[index]);
+                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    currentCollumn++;
+                                }
+                            }
+
+                            //tìm ra vị trí đầu tiên là dịch vụ ic
+                            startIndex = -1;
+                            dataFromTableLSTB.some((index, item) => {
+                                if (item === "IC") {
+                                    startIndex = index;
+                                    return true;
+                                }
+                            });
+
+                            if (startIndex != -1) {//tìm thấy
+                                for (let index = startIndex; index < startIndex + 5; index++) {
+                                    //dataFromTableLSTB
+                                    await mainWindow.webContents.send(crawlCommand.log, "ghi vào dịch vụ IC " + dataFromTableLSTB[index]);
+                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    currentCollumn++;
+                                }
+                            }
+
+                            //tìm ra vị trí đầu tiên là dịch vụ oc
+                            startIndex = -1;
+                            dataFromTableLSTB.some((index, item) => {
+                                if (item === "OC") {
+                                    startIndex = index;
+                                    return true;
+                                }
+                            });
+
+                            if (startIndex != -1) {//tìm thấy
+                                for (let index = startIndex; index < startIndex + 5; index++) {
+                                    //dataFromTableLSTB
+                                    await mainWindow.webContents.send(crawlCommand.log, "ghi vào dịch vụ OC " + dataFromTableLSTB[index]);
+                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    currentCollumn++;
+                                }
+                            }
+
+                        }
+
+                        //lịch sử nạp thẻ
+                        if (dataFromTableLSNT != undefined) {
+                            let currentCollumn = 57;
+                            breakPerSerrvice = 5;
+                            let limitRange = dataFromTableLSNT.length > 15 ? 15 : dataFromTableLSNT.length; // do chỉ có 2 dịch vụ => 2 * 5 = 10
+                            await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin nạp thẻ");
+                            // do nạp thẻ header cũng kaf td, nên cần bắt đầu từ
+                            for (let index = 5; index < limitRange; index++) {
+                                //dataFromTable3G
+                                if (index % breakPerSerrvice == 0) {
+                                    continue;
+                                } else {
+                                    await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin nạp thẻ có nội dung " + dataFromTableLSNT[index]);
+                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSNT[index]);
+                                    currentCollumn++;
+                                }
+                            }
+                        }
+
                     } else {
                         await writeToXcell(index + rowSpacing, 1, errorTitle + "-" + index + 1);//số thứ tự
                         await writeToXcell(index + rowSpacing, 2, errorTitle + "-" + inputPhoneNumberArray[index] + " bị lỗi, không tra cứu");
