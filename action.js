@@ -191,8 +191,11 @@ ipcRenderer.on(crawlCommand.onRunning, (e, item) => {
 
 ipcRenderer.on(crawlCommand.currentCrawl, (e, item) => {
     let tItem = item.split(" ");
+    let tRealDone = Number.parseFloat(tItem[0]);
+    tRealDone = tRealDone - 1;
+    let tResult = Math.round(tRealDone / Number.parseFloat(tItem[1]) * 100 * 100) / 100;
     document.getElementById("error_crawl").style.display = 'none';
-    document.getElementById("success_text").innerHTML = "Tệp '" + fileNameTXT + "' --- Đang tra cứu " + tItem[0] + "/" + tItem[1];
+    document.getElementById("success_text").innerHTML = "Tệp '" + fileNameTXT + "' --- Đang tra cứu " + tItem[0] + "/" + tItem[1]  + "' --- Đã hoàn thành " + tResult + "% - ( " + tRealDone + "/" + tItem[1] + " )";
 
 });
 
