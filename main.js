@@ -1091,6 +1091,8 @@ async function doCrawl() {
                             await writeToXcell(outerIndex + rowSpacing, index + 1, currentData[index]);
                         }
 
+                        let tempOnlyNeedDay = 0;
+
                         //3g
                         if (dataFromTable3G != undefined) {
                             let currentCollumn = 27;
@@ -1100,9 +1102,18 @@ async function doCrawl() {
                             for (let index = 0; index < limitRange; index++) {
                                 //dataFromTable3G
                                 if (index % breakPerSerrvice == 0) {
+                                    tempOnlyNeedDay = 0;
                                     continue;
                                 } else {
-                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTable3G[index]);
+                                    tempOnlyNeedDay++;
+                                    if(tempOnlyNeedDay == 3 || tempOnlyNeedDay == 4){
+                                        let tDayInside = dataFromTable3G[index].split(" ")[0];
+                                        //let tTimeInside = dataFromTable3G[index].split(" ")[1];
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);
+                                    } else {
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTable3G[index]);
+                                    }
+                                   
                                     currentCollumn++;
                                 }
                             }
@@ -1113,6 +1124,7 @@ async function doCrawl() {
                             let currentCollumn = 42;
                             breakPerSerrvice = 5;
                             let startIndex = -1;
+                            tempOnlyNeedDay = 0;
                             // await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin lịch sử thuê bao gprs");
                             //tìm ra vị trí đầu tiên là dịch vụ gprs
                             dataFromTableLSTB.some((item, index) => {
@@ -1126,7 +1138,14 @@ async function doCrawl() {
                                 for (let index = startIndex; index < startIndex + 5; index++) {
                                     //dataFromTableLSTB
                                     // await mainWindow.webContents.send(crawlCommand.log, "ghi vào dịch vụ GPRS " + dataFromTableLSTB[index]);
-                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    tempOnlyNeedDay++;
+                                    if (tempOnlyNeedDay == 2) {
+                                        let tDayInside = dataFromTableLSTB[index].split(" ")[0];
+                                        //let tTimeInside = dataFromTable3G[index].split(" ")[1];
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);
+                                    } else {
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    }
                                     currentCollumn++;
                                 }
                             }
@@ -1134,6 +1153,7 @@ async function doCrawl() {
                             //await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin lịch sử thuê bao ic");
 
                             //tìm ra vị trí đầu tiên là dịch vụ ic
+                            tempOnlyNeedDay = 0;
                             startIndex = -1;
                             dataFromTableLSTB.some((item, index) => {
                                 if (item.includes("IC") && index % 9 == 0) {
@@ -1147,7 +1167,14 @@ async function doCrawl() {
                                 for (let index = startIndex; index < startIndex + 5; index++) {
                                     //dataFromTableLSTB
                                     // await mainWindow.webContents.send(crawlCommand.log, "ghi vào dịch vụ IC " + dataFromTableLSTB[index]);
-                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    tempOnlyNeedDay++;
+                                    if (tempOnlyNeedDay == 2) {
+                                        let tDayInside = dataFromTableLSTB[index].split(" ")[0];
+                                        //let tTimeInside = dataFromTable3G[index].split(" ")[1];
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);
+                                    } else {
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    }
                                     currentCollumn++;
                                 }
                             }
@@ -1155,6 +1182,7 @@ async function doCrawl() {
                             //await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin lịch sử thuê bao oc");
                             //tìm ra vị trí đầu tiên là dịch vụ oc
                             startIndex = -1;
+                            tempOnlyNeedDay = 0;
                             dataFromTableLSTB.some((item, index) => {
                                 if (item.includes("OC") && index % 9 == 0) {
                                     startIndex = index;
@@ -1167,7 +1195,14 @@ async function doCrawl() {
                                 for (let index = startIndex; index < startIndex + 5; index++) {
                                     //dataFromTableLSTB
                                     // await mainWindow.webContents.send(crawlCommand.log, "ghi vào dịch vụ OC " + dataFromTableLSTB[index]);
-                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    tempOnlyNeedDay++;
+                                    if (tempOnlyNeedDay == 2) {
+                                        let tDayInside = dataFromTableLSTB[index].split(" ")[0];
+                                        //let tTimeInside = dataFromTable3G[index].split(" ")[1];
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);
+                                    } else {
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    }
                                     currentCollumn++;
                                 }
                             }
@@ -1175,6 +1210,7 @@ async function doCrawl() {
                             // mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin lịch sử thuê bao can");
                             //tìm ra vị trí đầu tiên là dịch vụ oc
                             startIndex = -1;
+                            tempOnlyNeedDay = 0;
                             dataFromTableLSTB.some((item, index) => {
                                 if (item.includes("CAN") && index % 9 == 0) {
                                     startIndex = index;
@@ -1187,7 +1223,14 @@ async function doCrawl() {
                                 for (let index = startIndex; index < startIndex + 5; index++) {
                                     //dataFromTableLSTB
                                     // await mainWindow.webContents.send(crawlCommand.log, "ghi vào dịch vụ OC " + dataFromTableLSTB[index]);
-                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    tempOnlyNeedDay++;
+                                    if (tempOnlyNeedDay == 2) {
+                                        let tDayInside = dataFromTableLSTB[index].split(" ")[0];
+                                        //let tTimeInside = dataFromTable3G[index].split(" ")[1];
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);
+                                    } else {
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSTB[index]);
+                                    }
                                     currentCollumn++;
                                 }
                             }
@@ -1200,10 +1243,10 @@ async function doCrawl() {
                             let currentCollumn = 62;
                             breakPerSerrvice = 5;
                             let limitRange = dataFromTableLSNT.length > 15 ? 15 : dataFromTableLSNT.length; // do chỉ có 2 dịch vụ => 2 * 5 = 10
-                            await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin nạp thẻ " + dataFromTableLSNT.length + " " + dataFromTableLSNT.leng);
-
+                            //await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin nạp thẻ " + dataFromTableLSNT.length + " " + dataFromTableLSNT.leng);
+                            tempOnlyNeedDay = 0;
                             if (dataFromTableLSNT.length == 0) {
-                                await mainWindow.webContents.send(crawlCommand.log, "thông tin nạp thẻ undefined");
+                                //await mainWindow.webContents.send(crawlCommand.log, "thông tin nạp thẻ undefined");
                                 //let noLSNTElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox div");
                                 //let noLSNT = await (await noLSNTElement.getProperty('innerHTML')).jsonValue();
                                // await mainWindow.webContents.send(crawlCommand.log, "thông tin nạp thẻ undefined " + noLSNTElement);
@@ -1215,8 +1258,18 @@ async function doCrawl() {
                                 // do nạp thẻ header cũng kaf td, nên cần bắt đầu từ
                                 for (let index = 5; index < limitRange; index++) {
                                     //dataFromTable3G
-                                    await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin nạp thẻ có nội dung " + dataFromTableLSNT[index]);
-                                    await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSNT[index]);
+                                    if(index % 5 === 0){
+                                        tempOnlyNeedDay = 0;
+                                    }
+                                    tempOnlyNeedDay++;
+                                    if(tempOnlyNeedDay === 2){
+                                        let tDayInside = dataFromTableLSNT[index].split(" ")[0];
+                                        //let tTimeInside = dataFromTable3G[index].split(" ")[1];
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);
+                                    } else {
+                                        await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTableLSNT[index]);
+                                    }
+                                    //await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin nạp thẻ có nội dung " + dataFromTableLSNT[index]);
                                     currentCollumn++;
                                 }
                             }
