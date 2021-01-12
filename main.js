@@ -38,7 +38,10 @@ let sleepBetwwenClick = 1500;
 
 const gotTheLock = app.requestSingleInstanceLock(); //singleton
 
-var crawlUrl = "http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
+var crawlUrl = "http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx"; // vì nếu chưa dăng nhập thì vào trang lấy thông tin khách hàng cũng sẽ bị redirect về trang đăng nhập
+//http://ccos.vnpt.vn
+//http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx
+//http://10.149.34.250:1609/Views/KhachHang/ThongTinKhachHang.aspx
 var threshHoldeCount = 7;
 const crawlCommand = {
     login: "crawl:login",
@@ -110,7 +113,7 @@ var page, pageLogin;
 var breakPerSerrvice = 6;//có 6,5 cột dịch vụ
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 800, height: 600, webPreferences: {
+        width: 1000, height: 1000, webPreferences: {
             nodeIntegration: true // dung được require trên html
         }
     });
@@ -130,7 +133,12 @@ function createWindow() {
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     // Insert menu
     Menu.setApplicationMenu(mainMenu);
-
+    /*
+    mainWindow.on("uncaughtException",async function (e) {
+        await mainWindow.webContents.send(crawlCommand.log, "error occurs " + e);
+        return false;
+     })
+    */
     mainWindow.on('closed', function () {
         mainWindow = null;
     })
@@ -643,12 +651,19 @@ async function asyncForEach(array, startIndex, callback) {
     }
 }
 
-//crawl
+async function testFunction() {
+    let domElement1 = await pageLogin.$$('body');
+    let value1 = (await (await domElement1[0].getProperty('innerHTML')).jsonValue());
+    await mainWindow.webContents.send(crawlCommand.log, value1);
+}
 
+//crawl
 function doLogin(_username, _password) {
     concurentLogin = null;
     //đang login
-    concurentLogin = puppeteer.launch({ headless: true, executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
+    //C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
+    //C:\\Users\\Administrator\\AppData\\Local\\CocCoc\\Browser\\Application\\browser.exe
+    concurentLogin = puppeteer.launch({ headless: false, executablePath: exPath == "" ? "C:\\Users\\ab\\AppData\\Local\\CocCoc\\Browser\\Application\\browser.exe" : exPath }).then(async browser => {
         mainBrowser = browser;
         pageLogin = await browser.newPage();
 
@@ -745,29 +760,102 @@ function doLogin(_username, _password) {
         //otp
         ipcMain.on(crawlCommand.otp, async function (e, item) {
 
+            try {
+                //đang xác thực OTP
+                await mainWindow.webContents.send(crawlCommand.otp, 2);
 
-            //đang xác thực OTP
-            await mainWindow.webContents.send(crawlCommand.otp, 2);
+                await mainWindow.webContents.send(crawlCommand.log, 'otp ' + item);
 
-            await mainWindow.webContents.send(crawlCommand.log, 'otp ' + item);
+                /*
+                let domElement1 = await pageLogin.$$('body');
+                let value1 = (await (await domElement1[0].getProperty('innerHTML')).jsonValue());
+               
+                await mainWindow.webContents.send(crawlCommand.log, value1);
+                */
 
-            await pageLogin.$eval('#ctl01 .wrap-body .inner .tbl-login #txtOtp', (el, value) => el.value = value, item);
+                await pageLogin.$eval('#ctl01 .wrap-body .inner .tbl-login #txtOtp', (el, value) => el.value = value, item);
 
-            //ngăn race condition
-            await Promise.all([pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess'), pageLogin.waitForNavigation({ waitUntil: 'networkidle0' })]);
+                // await pageLogin.click('#ctl01 .wrap-body .inner .tbl-login');
 
-            // await pageLogin.evaluate(({ ite }) => {
-            //     document.getElementById("txtOtp").value = ite;
-            //     document.getElementById("btnProcess").click;
-            // }, { item });
+                await mainWindow.webContents.send(crawlCommand.log, 'input otp');
 
-            await mainWindow.webContents.send(crawlCommand.log, 'waiting otp');
+                // await pageLogin.waitForNavigation({ waitUntil: 'load' });
+                //ngăn race condition
+                //await Promise.all([pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess'), timer(sleepBetwwenClick*2), testFunction(), pageLogin.waitForNavigation({ waitUntil: 'networkidle2' }),await mainWindow.webContents.send(crawlCommand.log, 'otp success'), mainWindow.webContents.send(crawlCommand.otp, 1)]);
+
+                /*
+                await Promise.all([pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess'), pageLogin.waitForNavigation({ waitUntil: 'domcontentloaded' }), testFunction()]);
+
+                await timer(sleepBetwwenClick * 14);
+
+                await pageLogin.goto(crawlUrl);//, { waitUntil: 'networkidle0' });
+
+                await pageLogin.waitForNavigation({ waitUntil: 'networkidle0' });
+
+                await Promise.all([testFunction(), await mainWindow.webContents.send(crawlCommand.log, 'otp success'), mainWindow.webContents.send(crawlCommand.otp, 1)]);
+                */
+
+                await pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess');
+                /*
+                                let checkFunction = await pageLogin.waitForFunction('window.location.href == http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx');
+                
+                                if(checkFunction){
+                                    await mainWindow.webContents.send(crawlCommand.otp, 1);
+                                    await mainWindow.webContents.send(crawlCommand.log, 'otp success');
+                                } else {
+                                    await mainWindow.webContents.send(crawlCommand.otp, -1);
+                                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ' + err);
+                                }
+                */
+                let countTime = 2000;
+
+                await timer(countTime);
+
+                let domElement1 = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtThueBao');
+                //let value1 = (await (await domElement1[0].getProperty('innerHTML')).jsonValue());
+
+                while (countTime < countTime * 15 || domElement1 == null) {
+                    await mainWindow.webContents.send(crawlCommand.log, 'countTime ' + countTime);
+                    await mainWindow.webContents.send(crawlCommand.log, 'domElement1 ' + domElement1);
+                    domElement1 = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtThueBao');
+                    countTime = countTime + 2000;
+                    await timer(2000);
+                }
+
+                if (domElement1 == null) {
+                    await mainWindow.webContents.send(crawlCommand.otp, -1);
+                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ' + err);
+                } else {
+                    await timer(6000);
+                    await mainWindow.webContents.send(crawlCommand.otp, 1);
+                    await mainWindow.webContents.send(crawlCommand.log, 'otp success');
+                }
+
+                let domElement2 = await pageLogin.$$('body');
+                let value1 = (await (await domElement2[0].getProperty('innerHTML')).jsonValue());
+
+                await mainWindow.webContents.send(crawlCommand.log, value1);
+
+                // await pageLogin.evaluate(({ ite }) => {
+                //     document.getElementById("txtOtp").value = ite;
+                //     document.getElementById("btnProcess").click;
+                // }, { item });
 
 
-
-            //xác thực mật khẩu otp thành công
-            await mainWindow.webContents.send(crawlCommand.otp, 1);
-
+                //xác thực mật khẩu otp thành công
+                //await mainWindow.webContents.send(crawlCommand.otp, 1);
+            }
+            catch (err) {
+                await mainWindow.webContents.send(crawlCommand.log, 'url ' + pageLogin.url());
+                if (pageLogin.url() == "http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx") {
+                    await timer(6000);
+                    await mainWindow.webContents.send(crawlCommand.otp, 1);
+                    await mainWindow.webContents.send(crawlCommand.log, 'otp success ' );
+                } else {
+                    await mainWindow.webContents.send(crawlCommand.otp, -1);
+                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ' );
+                }
+            }
             // await mainBrowser.close();
             // concurentLogin = null;
         });
@@ -1038,7 +1126,7 @@ async function doCrawl() {
                         return td.innerHTML;
                     }));
 
-                    // await mainWindow.webContents.send(crawlCommand.log, "dịch vụ 3g " + dataFromTable3G);
+                    await mainWindow.webContents.send(crawlCommand.log, "dịch vụ 3g " + dataFromTable3G);
 
                     //bấm vào lịch sử thuê bao
                     // await mainWindow.webContents.send(crawlCommand.log, 'click lịch sử thuê bao ');
@@ -1059,7 +1147,7 @@ async function doCrawl() {
                         return td.innerHTML;
                     }));
 
-                    //  await mainWindow.webContents.send(crawlCommand.log, "lịch sử thuê bao " + dataFromTableLSTB);
+                    await mainWindow.webContents.send(crawlCommand.log, "lịch sử thuê bao " + dataFromTableLSTB);
 
                     //bấm vào lịch sử nạp thẻ
                     // await mainWindow.webContents.send(crawlCommand.log, 'click lịch sử nạp thẻ ');
@@ -1080,7 +1168,7 @@ async function doCrawl() {
                         return td.innerHTML;
                     }));
 
-                    // await mainWindow.webContents.send(crawlCommand.log, "lịch sử nạp thẻ " + dataFromTableLSNT);
+                    await mainWindow.webContents.send(crawlCommand.log, "lịch sử nạp thẻ " + dataFromTableLSNT);
 
                     if (canWrite) {
                         //phần ghi ra file excel
@@ -1106,14 +1194,14 @@ async function doCrawl() {
                                     continue;
                                 } else {
                                     tempOnlyNeedDay++;
-                                    if(tempOnlyNeedDay == 3 || tempOnlyNeedDay == 4){
+                                    if (tempOnlyNeedDay == 3 || tempOnlyNeedDay == 4) {
                                         let tDayInside = dataFromTable3G[index].split(" ")[0];
                                         //let tTimeInside = dataFromTable3G[index].split(" ")[1];
                                         await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);
                                     } else {
                                         await writeToXcell(outerIndex + rowSpacing, currentCollumn, dataFromTable3G[index]);
                                     }
-                                   
+
                                     currentCollumn++;
                                 }
                             }
@@ -1125,7 +1213,7 @@ async function doCrawl() {
                             breakPerSerrvice = 5;
                             let startIndex = -1;
                             tempOnlyNeedDay = 0;
-                            // await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin lịch sử thuê bao gprs");
+                            //await mainWindow.webContents.send(crawlCommand.log, "ghi vào thông tin lịch sử thuê bao gprs");
                             //tìm ra vị trí đầu tiên là dịch vụ gprs
                             dataFromTableLSTB.some((item, index) => {
                                 if (item === "GPRS" && index % 9 == 0) {
@@ -1249,7 +1337,7 @@ async function doCrawl() {
                                 //await mainWindow.webContents.send(crawlCommand.log, "thông tin nạp thẻ undefined");
                                 //let noLSNTElement = await pageLogin.$("#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .box5 #tabContent .midbox div");
                                 //let noLSNT = await (await noLSNTElement.getProperty('innerHTML')).jsonValue();
-                               // await mainWindow.webContents.send(crawlCommand.log, "thông tin nạp thẻ undefined " + noLSNTElement);
+                                // await mainWindow.webContents.send(crawlCommand.log, "thông tin nạp thẻ undefined " + noLSNTElement);
                                 let currentCollumn = 63;//ô 63 rộng hơn
                                 let noLSNT = "Trong 30 ngày gần đây không có thông tin nạp thẻ";
                                 await writeToXcell(outerIndex + rowSpacing, currentCollumn, noLSNT);
@@ -1258,11 +1346,11 @@ async function doCrawl() {
                                 // do nạp thẻ header cũng kaf td, nên cần bắt đầu từ
                                 for (let index = 5; index < limitRange; index++) {
                                     //dataFromTable3G
-                                    if(index % 5 === 0){
+                                    if (index % 5 === 0) {
                                         tempOnlyNeedDay = 0;
                                     }
                                     tempOnlyNeedDay++;
-                                    if(tempOnlyNeedDay === 2){
+                                    if (tempOnlyNeedDay === 2) {
                                         let tDayInside = dataFromTableLSNT[index].split(" ")[0];
                                         //let tTimeInside = dataFromTable3G[index].split(" ")[1];
                                         await writeToXcell(outerIndex + rowSpacing, currentCollumn, tDayInside);

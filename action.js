@@ -327,6 +327,7 @@ function otp() {
         document.getElementById("otpText").focus();
         document.getElementById("crawl_otp_error_text").innerHTML = "Cần nhập mật khẩu OTP";
         document.getElementById("crawl_otp_error_text").style.display = 'block';
+        hideProgressBarOTP();
     } else {
         ipcRenderer.send(crawlCommand.otp, otpText);
     }
