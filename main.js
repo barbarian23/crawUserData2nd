@@ -663,7 +663,8 @@ function doLogin(_username, _password) {
     //đang login
     //C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
     //C:\\Users\\Administrator\\AppData\\Local\\CocCoc\\Browser\\Application\\browser.exe
-    concurentLogin = puppeteer.launch({ headless: false, executablePath: exPath == "" ? "C:\\Users\\ab\\AppData\\Local\\CocCoc\\Browser\\Application\\browser.exe" : exPath }).then(async browser => {
+    //C:\\Users\\Administrator\\AppData\\Local\\CocCoc\\Browser\\Application\\browser.exe
+    concurentLogin = puppeteer.launch({ headless: false, executablePath: exPath == "" ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" : exPath }).then(async browser => {
         mainBrowser = browser;
         pageLogin = await browser.newPage();
 
@@ -794,48 +795,57 @@ function doLogin(_username, _password) {
 
                 await Promise.all([testFunction(), await mainWindow.webContents.send(crawlCommand.log, 'otp success'), mainWindow.webContents.send(crawlCommand.otp, 1)]);
                 */
+                await timer(2000);
 
                 await pageLogin.click('#ctl01 .wrap-body .inner .tbl-login #btnProcess');
-                /*
-                                let checkFunction = await pageLogin.waitForFunction('window.location.href == http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx');
-                
-                                if(checkFunction){
-                                    await mainWindow.webContents.send(crawlCommand.otp, 1);
-                                    await mainWindow.webContents.send(crawlCommand.log, 'otp success');
-                                } else {
-                                    await mainWindow.webContents.send(crawlCommand.otp, -1);
-                                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ' + err);
-                                }
-                */
                 let countTime = 2000;
-
-                await timer(countTime);
-
-                let domElement1 = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtThueBao');
-                //let value1 = (await (await domElement1[0].getProperty('innerHTML')).jsonValue());
-
-                while (countTime < countTime * 15 || domElement1 == null) {
+                let checkTimeOutp = false;
+                while (countTime < 15000 && !checkTimeOutp) {
                     await mainWindow.webContents.send(crawlCommand.log, 'countTime ' + countTime);
-                    await mainWindow.webContents.send(crawlCommand.log, 'domElement1 ' + domElement1);
-                    domElement1 = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtThueBao');
+                    let checkFunction = await pageLogin.waitForFunction('window.location.href == "http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx"');
+                    await mainWindow.webContents.send(crawlCommand.log, 'check function ' + checkFunction);
+                    if (checkFunction) {
+                        await mainWindow.webContents.send(crawlCommand.otp, 1);
+                        await mainWindow.webContents.send(crawlCommand.log, 'otp success');
+                        checkTimeOutp = true;
+                    }
                     countTime = countTime + 2000;
-                    await timer(2000);
+                    await timer(3000);
                 }
-
-                if (domElement1 == null) {
+                if (!checkTimeOutp) {
                     await mainWindow.webContents.send(crawlCommand.otp, -1);
-                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ' + err);
-                } else {
-                    await timer(6000);
-                    await mainWindow.webContents.send(crawlCommand.otp, 1);
-                    await mainWindow.webContents.send(crawlCommand.log, 'otp success');
+                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ');
                 }
-
-                let domElement2 = await pageLogin.$$('body');
-                let value1 = (await (await domElement2[0].getProperty('innerHTML')).jsonValue());
-
-                await mainWindow.webContents.send(crawlCommand.log, value1);
-
+                /*
+                 let countTime = 2000;
+ 
+                 await timer(countTime);
+ 
+                 let domElement1 = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtThueBao');
+                 //let value1 = (await (await domElement1[0].getProperty('innerHTML')).jsonValue());
+ 
+                 while (countTime < countTime * 15 || domElement1 == null) {
+                     await mainWindow.webContents.send(crawlCommand.log, 'countTime ' + countTime);
+                     await mainWindow.webContents.send(crawlCommand.log, 'domElement1 ' + domElement1);
+                     domElement1 = await pageLogin.$$('#wraper #bodypage #col-right .tabs-wrap #rightarea #tracuuthongtinkhachhang .body .nobor .boxOB .midbox .nobor #txtThueBao');
+                     countTime = countTime + 2000;
+                     await timer(2000);
+                 }
+ 
+                 if (domElement1 == null) {
+                     await mainWindow.webContents.send(crawlCommand.otp, -1);
+                     await mainWindow.webContents.send(crawlCommand.log, 'otp error ' + err);
+                 } else {
+                     await timer(6000);
+                     await mainWindow.webContents.send(crawlCommand.otp, 1);
+                     await mainWindow.webContents.send(crawlCommand.log, 'otp success');
+                 }
+ 
+                 let domElement2 = await pageLogin.$$('body');
+                 let value1 = (await (await domElement2[0].getProperty('innerHTML')).jsonValue());
+ 
+                 await mainWindow.webContents.send(crawlCommand.log, value1);
+ */
                 // await pageLogin.evaluate(({ ite }) => {
                 //     document.getElementById("txtOtp").value = ite;
                 //     document.getElementById("btnProcess").click;
@@ -846,14 +856,15 @@ function doLogin(_username, _password) {
                 //await mainWindow.webContents.send(crawlCommand.otp, 1);
             }
             catch (err) {
+                await mainWindow.webContents.send(crawlCommand.log, 'err otp ' + err);
                 await mainWindow.webContents.send(crawlCommand.log, 'url ' + pageLogin.url());
                 if (pageLogin.url() == "http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx") {
                     await timer(6000);
                     await mainWindow.webContents.send(crawlCommand.otp, 1);
-                    await mainWindow.webContents.send(crawlCommand.log, 'otp success ' );
+                    await mainWindow.webContents.send(crawlCommand.log, 'otp success ');
                 } else {
                     await mainWindow.webContents.send(crawlCommand.otp, -1);
-                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ' );
+                    await mainWindow.webContents.send(crawlCommand.log, 'otp error ');
                 }
             }
             // await mainBrowser.close();
