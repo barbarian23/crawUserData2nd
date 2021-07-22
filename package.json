@@ -18,7 +18,7 @@
     "excel4node": "^1.7.2",
     "fs": "0.0.1-security",
     "puppeteer": "^3.0.1",
-    "xlsx": "^0.15.6"
+    "xlsx": "^0.17.0"
   },
   "devDependencies": {
     "electron-builder": "^22.9.1"
